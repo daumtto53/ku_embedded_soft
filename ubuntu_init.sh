@@ -16,4 +16,5 @@ sudo apt-get install git
 
 sudo apt-get install 
 
-
+# export git token & alias dmesg | tail --line=10
+vim ~/.bashrc  
