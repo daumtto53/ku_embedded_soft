@@ -87,7 +87,7 @@ static int ku_ipc_release(struct inode *inode, struct file *file) {
 	return (0);
 }
 
-static int is_using_msgq(int pid, int msgid)
+static int is_using_msgq(int msgid, int pid)
 {
 	struct ku_pid_listnode	*node;
 	struct list_head		*pos;
@@ -117,15 +117,14 @@ static int ku_ipc_msgget_ioctl(unsigned long arg)
 	int		msgflg;
 	int		ret_msgid;
 
-	ref_count = msgq_wrap.msgq_ref_count[msgid];
-	pid_list =
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	msgflg = meta->msgflg;
+	ref_count = msgq_wrap.msgq_ref_count[msgid];
 
 	if (msgid < 0 && msgid > 9)
 		return (-1);
-	if (is_using_msgq(current->pid, msgid))
+	if (is_using_msgq(msgid, current->pid))
 		return (-1);
 
 	if (ref_count == 0)
@@ -157,9 +156,43 @@ static int ku_ipc_msgget_ioctl(unsigned long arg)
 	return (-1);
 }
 
-static int ku_ipc_msgget_ioctl(unsigned long arg)
+static int remove_pid_from_list(int msgid, int pid)
 {
+	struct ku_pid_listnode	*node;
 
+	list_for_each_entry(node, &(msgq_wrap.msgq_entry_pid[msgid].list), list)
+		if (node->pid == pid)
+			break;
+	list_del(node->list);
+	kfree(node);
+	return (0);
+}
+
+static int ku_ipc_msgclose_ioctl(unsigned long arg)
+{
+	struct msgq_metadata	*meta;
+	struct list_head		*pid_list;
+	int						ref_count;
+	int		msgid;
+	int		ret_msgid;
+
+	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
+	msgid = meta->msqid;
+	ref_count = msgq_wrap.msgq_ref_count[msgid];
+
+	if (msgid < 0 && msgid > 9)
+		return (-1);
+	if (!is_using_msgq(current->pid, msgid))
+		return (-1);
+
+	if (ref_count == 0)
+		return (-1);
+	else
+	{
+		remove_pid_from_list(msgid, current->pid);
+		msgq_wrap.msgq_ref_count[msgid]--;
+		return (0);
+	}
 }
 
 static int ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
