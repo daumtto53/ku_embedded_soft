@@ -123,6 +123,7 @@ int	ku_msgrcv(int msqid, void *msgp, int msgsz, long msgtyp, int msgflg)
 	dev = open("/dev/ku_ipc_dev", O_RDWR);
 	msgrcv_ret = ioctl(dev, KU_IPC_MSGRCV, &msgq_meta);
 	printf("ku_msgrcv : print ret_val : [%d]\n", msgrcv_ret);
+	//rcv한 msgp 출력하기
 	close(dev);
 	return (msgrcv_ret);
 }

@@ -42,15 +42,21 @@ struct ku_msgbuf
 struct ku_listnode
 {
 	struct ku_msgbuf	msg;
-	struct list_head	*list;
+	struct list_head	list;
+};
+
+struct ku_pid_listnode
+{
+	int					pid;
+	struct list_head	list;
 };
 
 struct msgq_wrapper
 {
-	int					msgq_num[MAX_ENTRY];
-	int					msgq_bytes[MAX_ENTRY];
-	struct list_head	*msgq_entry[MAX_ENTRY];
-	struct list_head	*msgq_user_head[MAX_ENTRY];
+	int						msgq_ref_count[MAX_ENTRY];
+	int						msgq_bytes[MAX_ENTRY];
+	struct ku_listnode		msgq_entry[MAX_ENTRY];
+	struct ku_pid_listnode	msgq_entry_pid[MAX_ENTRY];
 };
 
 struct	msgq_metadata
@@ -62,6 +68,9 @@ struct	msgq_metadata
 	int		msgflg;
 };
 
+spinlock_t			msgq_lock[MAX_ENTRY];
+wait_queue_head_t	ku_wq;
+struct msgq_wrapper	msgq_wrap;
 //spinlock, wq
 
 
@@ -73,15 +82,113 @@ static int ku_ipc_open(struct inode *inode, struct file *file)
 	return (0);
 }
 
-static int ku_ipc_release(struct inode *inode, struct file *file)
-{
+static int ku_ipc_release(struct inode *inode, struct file *file) {
 	PRINTMOD("release");
 	return (0);
 }
 
-static int ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static int is_using_msgq(int pid, int msgid)
+{
+	struct ku_pid_listnode	*node;
+	struct list_head		*pos;
+
+	list_for_each_entry(node, &(msgq_wrap.msgq_entry_pid[msgid].list), list)
+		if (node->pid == pid)
+			return (1);
+	return (0);
+}
+
+static int add_pid_to_list(int msgid, int pid)
+{
+	struct ku_pid_listnode *node;
+
+	node = (struct ku_pid_listnode *)kmalloc(sizeof(struct ku_pid_listnode), GFP_KERNEL);
+	node->pid = pid;
+	list_add_tail(&node->list, &msgq_wrap.msgq_entry_pid[msgid].list);
+	return (1);
+}
+
+static int ku_ipc_msgget_ioctl(unsigned long arg)
+{
+	struct msgq_metadata	*meta;
+	struct list_head		*pid_list;
+	int						ref_count;
+	int		msgid;
+	int		msgflg;
+	int		ret_msgid;
+
+	ref_count = msgq_wrap.msgq_ref_count[msgid];
+	pid_list =
+	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
+	msgid = meta->msqid;
+	msgflg = meta->msgflg;
+
+	if (msgid < 0 && msgid > 9)
+		return (-1);
+	if (is_using_msgq(current->pid, msgid))
+		return (-1);
+
+	if (ref_count == 0)
+	{
+		if (msgflg & KU_IPC_CREAT)
+		{
+			spin_lock(&msgq_lock[msgid]);
+			msgq_wrap.msgq_ref_count[msgid]++;
+			add_pid_to_list(msgid, current->pid);
+			spin_unlock(&msgq_lock[msgid]);
+			return (msgid);
+		}
+		else if (msgflg == 0)
+			return (-1);
+	}
+	else
+	{
+		if ((msgflg & KU_IPC_CREAT) && (msgflg & KU_IPC_EXCL))
+			return (-1);
+		else if ((msgflg == 0) || (msgflg & KU_IPC_CREAT))
+		{
+			spin_lock(&msgq_lock[msgid]);
+			msgq_wrap.msgq_ref_count[msgid]++;
+			add_pid_to_list(msgid, current->pid);
+			spin_unlock(&msgq_lock[msgid]);
+			return (msgid);
+		}
+	}
+	return (-1);
+}
+
+static int ku_ipc_msgget_ioctl(unsigned long arg)
 {
 
+}
+
+static int ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	int		ret_val;
+
+	swtich (cmd)
+	{
+		case KU_IPC_MSGGET :
+			PRINTMOD("KU_IPC_MSGGET");
+			ret_val = ku_ipc_msgget_ioctl(arg);
+			return (ret_val);
+
+		case KU_IPC_MSGCLOSE :
+			PRINTMOD("KU_IPC_MSGCLOSE");
+			ret_val = ku_ipc_msgclose_ioctl(arg);
+			return (ret_val);
+
+		case KU_IPC_MSGSND :
+			PRINTMOD("KU_IPC_MSGSND");
+			ret_val = ku_ipc_msgsnd_ioctl(arg);
+			return (ret_val);
+
+		case KU_IPC_MSGRCV :
+			PRINTMOD("KU_IPC_MSGRCV");
+			ret_val = ku_ipc_msgrcv_ioctl(arg);
+			return (ret_val);
+	}
+	return (-1);
 }
 
 struct file_operations ku_ipc_fops = {
@@ -93,24 +200,74 @@ struct file_operations ku_ipc_fops = {
 static dev_t		dev_num;
 static struct cdev	*cd_cdev;
 
-static void		init_cdev(void)
+/*
+list, spinlock, waitqueue, cdev, msgq_wrapper
+*/
+
+static int		init_cdev(void)
 {
 	alloc_chrdev_region(&dev_num, 0, 1, DEV_NAME);
 	cd_cdev = cdev_alloc();
 	cdev_init(cd_cdev, &ku_ipc_fops);
-	cdev_add(cd_cdev, dev_num, 1);
+	return (cdev_add(cd_cdev, dev_num, 1));
 }
 
-
-int		__init my_init(void)
+static void init_spinlock(void)
 {
-	PRINTMOD("my_init");
+	int		i;
+
+	for (i = 0; i < MAX_ENTRY; i++)
+		spin_lock_init(&msgq_lock[i]);
+}
+
+static void init_waitqueue(void)
+{
+	init_waitqueue_head(&ku_wq);
+}
+
+static void		init_msgq_wrapper(void)
+{
+	int		i;
+
+	for (i = 0; i < MAX_ENTRY; i++)
+	{
+		msgq_wrap.msgq_ref_count[i] = 0;
+		msgq_wrap.msgq_bytes[i] = 0;
+		INIT_LIST_HEAD(&msgq_wrap.msgq_entry[i].list);
+		INIT_LIST_HEAD(&msgq_wrap.msgq_entry_pid[i].list);
+	}
+}
+
+static int		init_datastructure(void)
+{
+	int		ret;
+
+	PRINTMOD("init_datastructure");
+	init_cdev();
+	init_spinlock();
+	init_waitqueue();
+	init_msgq_wrapper();
+	return (ret);
+}
+
+int		__init ku_ipc_init(void)
+{
+	int		cdev_ret;
+
+	PRINTMOD("ku_ipc_init");
+	cdev_ret = init_datastructure();
+	if (cdev_ret < 0)
+	{
+		printk("fail to add character device \n");
+		return (-1);
+	}
+
 	return (0);
 }
 
-void	__exit my_exit(void)
+void	__exit ku_ipc_exit(void)
 {
-	PRINTMOD("my_exit");
+	PRINTMOD("ku_ipc_exit");
 }
 
 module_init(my_init);
