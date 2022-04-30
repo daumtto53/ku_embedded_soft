@@ -105,7 +105,9 @@ static int add_pid_to_list(int msgid, int pid)
 
 	node = (struct ku_pid_listnode *)kmalloc(sizeof(struct ku_pid_listnode), GFP_KERNEL);
 	node->pid = pid;
+	spin_lock(&msgq_lock[msgid]);
 	list_add_tail(&node->list, &msgq_wrap.msgq_entry_pid[msgid].list);
+	spin_unlock(&msgq_lock[msgid]);
 	return (1);
 }
 
@@ -163,7 +165,10 @@ static int remove_pid_from_list(int msgid, int pid)
 	list_for_each_entry(node, &(msgq_wrap.msgq_entry_pid[msgid].list), list)
 		if (node->pid == pid)
 			break;
+	spin_lock(&msgq_lock[msgid]);
 	list_del(&node->list);
+	msgq_wrap.msgq_ref_count[msgid]--;
+	spin_unlock(&msgq_lock[msgid]);
 	kfree(node);
 	return (0);
 }
@@ -189,7 +194,6 @@ static int ku_ipc_msgclose_ioctl(unsigned long arg)
 	else
 	{
 		remove_pid_from_list(msgid, current->pid);
-		msgq_wrap.msgq_ref_count[msgid]--;
 		return (0);
 	}
 }
@@ -243,10 +247,106 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 }
 
 
+static int ku_ipc_msgrcv_ioctl(unsigned long arg)
+{
+	struct msgq_metadata	*meta;
+	struct ku_listnode		*node;
+	struct ku_listnode		*aux;
+	int						ref_count;
+	int		msgtyp;
+	int		msgid;
+	int		msgsz;
+	int		original_msgsz;
+	int		msgflg;
+	void	*msgp;
 
+	PRINTMOD("ku_ipc_msgrcv_ioctl");
+	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
+	msgid = meta->msqid;
+	msgsz = meta->msgsz;
+	original_msgsz = msgsz;
+	msgflg = meta->msgflg;
+	msgp = meta->msgp;
+	msgtyp = meta->msgtyp;
+	ref_count = msgq_wrap.msgq_ref_count[msgid];
 
+	node = NULL;
+	aux = NULL;
 
-static int ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+	if (msgid < 0 && msgid > 9)
+		return (-1);
+	if (ref_count == 0)
+		return (-1);
+	if (!is_using_msgq(current->pid, msgid))
+		return (-1);
+
+	if (msgflg & KU_MSG_NOERROR)
+	{
+		if (msgsz > MSG_LEN)
+			msgsz = MSG_LEN;
+		else
+			return (-1);
+	}
+
+	if (msgtyp == 0)
+	{
+		if (msgq_wrap.msgq_ref_count[msgid] == 0)
+		{
+			if (msgflg & KU_IPC_NOWAIT)
+				return (-1);
+			else
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+		}
+
+		list_for_each_entry(node, &msgq_wrap.msgq_entry[msgid].list, list)
+			break;
+	}
+	else if (msgtyp > 0)
+	{
+		if ((msgq_wrap.msgq_ref_count[msgid] == 0) && (msgflg & KU_IPC_NOWAIT))
+			return (-1);
+		while (node == NULL)
+		{
+			list_for_each_entry(aux, &msgq_wrap.msgq_entry[msgid].list, list)
+				if(aux->msg->type == msgtyp)
+				{
+					node = aux;
+					break;
+				}
+			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
+				return (-1);
+			else if (node == NULL)
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+		}
+	}
+	else
+	{
+		msgtyp *= -1;
+		if ((msgq_wrap.msgq_ref_count[msgid] == 0) && (msgflg & KU_IPC_NOWAIT))
+			return (-1);
+		while (node == NULL)
+		{
+			list_for_each_entry(aux, &msgq_wrap.msgq_entry[msgid].list, list)
+				if(aux->msg->type <= msgtyp)
+				{
+					node = aux;
+					break;
+				}
+			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
+				return (-1);
+			else if (node == NULL)
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+		}
+	}
+	copy_to_user(msgp, node->msg, msgsz);
+	msgq_wrap.msgq_bytes[msgid] -= msgsz;
+	msgq_wrap.msgq_num[msgid]--;
+	spin_unlock(&msgq_lock[msgid]);
+	kfree(node);
+	return (msgsz);
+}
+
+static long ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int		ret_val;
 
