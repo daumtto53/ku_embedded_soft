@@ -246,8 +246,9 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 
 	new_node = (struct ku_listnode *)kmalloc(sizeof(struct ku_listnode), GFP_KERNEL);
 	new_msg = (struct ku_msgbuf *)kmalloc(sizeof(struct ku_msgbuf), GFP_KERNEL);
-	copy_from_user(new_msg, (struct ku_listnode *)msgp, msgsz);
+	copy_from_user(new_msg, (struct ku_msgbuf *)msgp, sizeof(struct ku_msgbuf));
 	new_node->msg = new_msg;
+	new_node->msg->type = new_msg->type;
 	spin_lock(&msgq_lock[msgid]);
 	list_add_tail(&new_node->list, &msgq_wrap.msgq_entry[msgid].list);
 	msgq_wrap.msgq_bytes[msgid] += msgsz;
@@ -266,7 +267,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	struct ku_listnode		*node;
 	struct ku_listnode		*aux;
 	int						ref_count;
-	int		msgtyp;
+	long		msgtyp;
 	int		msgid;
 	int		msgsz;
 	int		original_msgsz;
@@ -290,8 +291,6 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 
 	if (msgid < 0 && msgid > 9)
 		return (-1);
-	if (ref_count == 0)
-		return (-1);
 	if (!is_using_msgq(msgid, current->pid))
 		return (-1);
 
@@ -310,7 +309,8 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (msgflg & KU_IPC_NOWAIT)
 				return (-1);
 			else
-				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+				return(-1);
+				//wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
 		}
 
 		list_for_each_entry(node, &msgq_wrap.msgq_entry[msgid].list, list)
@@ -331,7 +331,8 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
 				return (-1);
 			else if (node == NULL)
-				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+				return (-1);
+				//wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
 		}
 	}
 	else
@@ -350,16 +351,20 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
 				return (-1);
 			else if (node == NULL)
-				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+				return (-1);
+				//wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
 		}
 	}
 	copy_to_user(msgp, node->msg, msgsz);
 	spin_lock(&msgq_lock[msgid]);
 	msgq_wrap.msgq_bytes[msgid] -= original_msgsz;
 	msgq_wrap.msgq_num[msgid]--;
+	list_del(&node->list);
 	spin_unlock(&msgq_lock[msgid]);
 	kfree(node->msg);
 	kfree(node);
+	printk("RCV_IOCTL1 : msgtyp:[%ld], mtext:[%s]\n", node->msg->type, node->msg->text);
+	printk("RCV_IOCTL2 : qnum:[%d], qbytes:[%d]\n",msgq_wrap.msgq_num[msgid], msgq_wrap.msgq_bytes[msgid]);
 	return (msgsz);
 }
 

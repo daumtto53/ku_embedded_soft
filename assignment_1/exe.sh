@@ -6,12 +6,12 @@ sudo sh ./ku_ipc_mknod.sh
 
 echo ""
 echo "######## KU_IPC_LIB START #########"
-./ku_ipc_lib_1 > text.md
+./ku_ipc_lib_1
 echo "######## KU_IPC_LIB END #########"
 
 echo ""
 echo "######## KU_IPC_LIB START #########"
-./ku_ipc_lib_1 >> text.md
+# ./ku_ipc_lib_1
 echo "######## KU_IPC_LIB END #########"
 echo ""
 

@@ -122,9 +122,9 @@ int main()
 {
 	int i;
 	int ret_val[MAX_ENTRY];
-	char	tmp[MSG_LEN];
+	char	tmp[50][MSG_LEN];
 
-	struct ku_msgbuf msgbuf[KUIPC_MAXMSG];
+	struct ku_msgbuf msgbuf[KUIPC_MAXMSG + 30];
 	struct ku_msgbuf *alloc_buf;
 	
 	//msg_get TESTCASE
@@ -164,10 +164,10 @@ int main()
 
 		for (i = 0; i < KUIPC_MAXMSG + 10; i++)
 		{
-			msgbuf[0].type = i;
-			sprintf(tmp, "MSGSND : type:[%d]", i); 
-			memcpy(&msgbuf[0], tmp, 128);
-			ret_val[0] = ku_msgsnd(0, &msgbuf[0], 128, KU_IPC_NOWAIT);
+			msgbuf[i].type = 0;
+			sprintf(tmp[i], "MSGSND : type:[%d]", i); 
+			memcpy(&msgbuf[i].text, tmp[i], 128);
+			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, KU_IPC_NOWAIT);
 			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
 		}
 	}	
@@ -178,8 +178,8 @@ int main()
 
 		for (i = 0; i < KUIPC_MAXMSG; i++)
 		{
-			ret_val[0] = ku_msgrcv(0, &msgbuf[0], 128, 20 - i, KU_IPC_NOWAIT);
-			printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[0].text, ret_val[0]);
+			ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_IPC_NOWAIT);
+			printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
 		}
 
 	}
