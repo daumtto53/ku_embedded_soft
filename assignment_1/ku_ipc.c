@@ -42,7 +42,7 @@ struct ku_msgbuf
 
 struct ku_listnode
 {
-	struct ku_msgbuf	msg;
+	struct ku_msgbuf	*msg;
 	struct list_head	list;
 };
 
@@ -56,6 +56,7 @@ struct msgq_wrapper
 {
 	int						msgq_ref_count[MAX_ENTRY];
 	int						msgq_bytes[MAX_ENTRY];
+	int						msgq_num[MAX_ENTRY];
 	struct ku_listnode		msgq_entry[MAX_ENTRY];
 	struct ku_pid_listnode	msgq_entry_pid[MAX_ENTRY];
 };
@@ -115,6 +116,7 @@ static int ku_ipc_msgget_ioctl(unsigned long arg)
 	int						msgid;
 	int						msgflg;
 
+	PRINTMOD("ku_ipc_msgget_ioctl");
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	msgflg = meta->msgflg;
@@ -172,6 +174,7 @@ static int ku_ipc_msgclose_ioctl(unsigned long arg)
 	int						ref_count;
 	int		msgid;
 
+	PRINTMOD("ku_ipc_msgclose_ioctl");
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	ref_count = msgq_wrap.msgq_ref_count[msgid];
@@ -190,6 +193,58 @@ static int ku_ipc_msgclose_ioctl(unsigned long arg)
 		return (0);
 	}
 }
+
+static int	is_blocked_condition(int msgid, int msgsz)
+{
+	return (msgsz + msgq_wrap.msgq_bytes[msgid] > KUIPC_MAXVOL) || (1 + msgq_wrap.msgq_num[msgid] > KUIPC_MAXMSG);
+}
+
+static int ku_ipc_msgsnd_ioctl(unsigned long arg)
+{
+	struct msgq_metadata	*meta;
+	struct ku_listnode		*new_node;
+	int						ref_count;
+	int		msgid;
+	int		msgsz;
+	int		msgflg;
+	void	*msgp;
+
+	PRINTMOD("ku_ipc_msgsnd_ioctl");
+	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
+	msgid = meta->msqid;
+	msgsz = meta->msgsz;
+	msgflg = meta->msgflg;
+	msgp = meta->msgp;
+	ref_count = msgq_wrap.msgq_ref_count[msgid];
+
+	if (msgid < 0 && msgid > 9)
+		return (-1);
+	if (ref_count == 0)
+		return (-1);
+	if (!is_using_msgq(current->pid, msgid))
+		return (-1);
+
+	if (is_blocked_condition(msgid, msgsz))
+	{
+		if (msgflg & KU_IPC_NOWAIT)
+			return (-1);
+		else
+			wait_event_interruptible(ku_wq, !is_blocked_condition(msgid, msgsz));
+	}
+
+	new_node = (struct ku_listnode *)kmalloc(sizeof(struct ku_listnode), GFP_KERNEL);
+	copy_from_user(new_node->msg, msgp, msgsz);
+	spin_lock(&msgq_lock[msgid]);
+	list_add_tail(&new_node->list, &msgq_wrap.msgq_entry[msgid].list);
+	msgq_wrap.msgq_bytes[msgid] += msgsz;
+	msgq_wrap.msgq_num[msgid]++;
+	spin_unlock(&msgq_lock[msgid]);
+	return (msgsz);
+}
+
+
+
+
 
 static int ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -262,6 +317,7 @@ static void		init_msgq_wrapper(void)
 	{
 		msgq_wrap.msgq_ref_count[i] = 0;
 		msgq_wrap.msgq_bytes[i] = 0;
+		msgq_wrap.msgq_num[i] = 0;
 		INIT_LIST_HEAD(&msgq_wrap.msgq_entry[i].list);
 		INIT_LIST_HEAD(&msgq_wrap.msgq_entry_pid[i].list);
 	}
