@@ -118,8 +118,23 @@ int	ku_msgrcv(int msqid, void *msgp, int msgsz, long msgtyp, int msgflg)
 //delete
 int main()
 {
-	int ret_val;
-	ret_val = ku_msgget(3, KU_IPC_CREAT);
-	printf("ret_val : %d\n", ret_val);
+	int i;
+	int ret_val[10];
+
+	for (i = 0; i < 10; i++)
+	{
+		ret_val[i] = ku_msgget(i, KU_IPC_CREAT);
+		printf("pid : [%d]\n", getpid());
+		printf("ret_val : [%d]\n", ret_val[i]);
+	}
+
+
+	for (i = 0; i < 10; i++)
+	{
+		ret_val[i] = ku_msgget(i, KU_IPC_CREAT);
+		printf("pid : [%d]\n", getpid());
+		printf("ret_val : [%d]\n", ret_val[i]);
+	}
+	
 	return (0);
 }

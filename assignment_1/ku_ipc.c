@@ -105,9 +105,8 @@ static int add_pid_to_list(int msgid, int pid)
 
 	node = (struct ku_pid_listnode *)kmalloc(sizeof(struct ku_pid_listnode), GFP_KERNEL);
 	node->pid = pid;
-	spin_lock(&msgq_lock[msgid]);
+		printk("add_to_pid : pid=[%d]\n", current->pid);
 	list_add_tail(&node->list, &msgq_wrap.msgq_entry_pid[msgid].list);
-	spin_unlock(&msgq_lock[msgid]);
 	return (1);
 }
 

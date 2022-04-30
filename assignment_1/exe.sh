@@ -1,12 +1,20 @@
 #! /bin/bash
 
 sudo insmod ku_ipc.ko
+
 sudo sh ./ku_ipc_mknod.sh
+
 echo ""
 echo "######## KU_IPC_LIB START #########"
-./ku_ipc_lib
+./ku_ipc_lib_1
+echo "######## KU_IPC_LIB END #########"
+
+echo ""
+echo "######## KU_IPC_LIB START #########"
+./ku_ipc_lib_1
 echo "######## KU_IPC_LIB END #########"
 echo ""
+
 sudo rmmod ku_ipc
 echo ""
 echo "######## KERNEL #########"
