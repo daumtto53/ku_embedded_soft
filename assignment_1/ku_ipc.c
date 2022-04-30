@@ -90,7 +90,6 @@ static int ku_ipc_release(struct inode *inode, struct file *file) {
 static int is_using_msgq(int msgid, int pid)
 {
 	struct ku_pid_listnode	*node;
-	struct list_head		*pos;
 
 	list_for_each_entry(node, &(msgq_wrap.msgq_entry_pid[msgid].list), list)
 		if (node->pid == pid)
@@ -113,9 +112,9 @@ static int ku_ipc_msgget_ioctl(unsigned long arg)
 	struct msgq_metadata	*meta;
 	struct list_head		*pid_list;
 	int						ref_count;
-	int		msgid;
-	int		msgflg;
-	int		ret_msgid;
+	int						msgid;
+	int						msgflg;
+	int						ret_msgid;
 
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
