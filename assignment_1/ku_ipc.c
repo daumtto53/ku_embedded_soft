@@ -451,6 +451,11 @@ int		__init ku_ipc_init(void)
 	return (0);
 }
 
+static void		delete_datastructure(void)
+{
+	return ;
+}
+
 void	__exit ku_ipc_exit(void)
 {
 	PRINTMOD("ku_ipc_exit");
