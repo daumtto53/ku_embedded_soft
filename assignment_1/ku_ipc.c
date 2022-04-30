@@ -212,6 +212,7 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 {
 	struct msgq_metadata	*meta;
 	struct ku_listnode		*new_node;
+	struct ku_msgbuf		*new_msg;
 	int						ref_count;
 	int		msgid;
 	int		msgsz;
@@ -230,8 +231,8 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 
 	if (msgid < 0 && msgid > 9)
 		return (-1);
-	if (ref_count == 0)
-		return (-1);
+	//if (ref_count == 0)
+	//	return (-1);
 	if (!is_using_msgq(msgid, current->pid))
 		return (-1);
 
@@ -244,11 +245,16 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 	}
 
 	new_node = (struct ku_listnode *)kmalloc(sizeof(struct ku_listnode), GFP_KERNEL);
-	copy_from_user(new_node->msg, msgp, msgsz);
+	new_msg = (struct ku_msgbuf *)kmalloc(sizeof(struct ku_msgbuf), GFP_KERNEL);
+	copy_from_user(new_msg, (struct ku_listnode *)msgp, msgsz);
+	new_node->msg = new_msg;
 	spin_lock(&msgq_lock[msgid]);
 	list_add_tail(&new_node->list, &msgq_wrap.msgq_entry[msgid].list);
 	msgq_wrap.msgq_bytes[msgid] += msgsz;
 	msgq_wrap.msgq_num[msgid]++;
+	
+	printk("MSGSND PRINT : qnum:[%d], qbytes:[%d]\n",msgq_wrap.msgq_num[msgid], msgq_wrap.msgq_bytes[msgid]);
+
 	spin_unlock(&msgq_lock[msgid]);
 	return (msgsz);
 }
@@ -348,9 +354,11 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 		}
 	}
 	copy_to_user(msgp, node->msg, msgsz);
-	msgq_wrap.msgq_bytes[msgid] -= msgsz;
+	spin_lock(&msgq_lock[msgid]);
+	msgq_wrap.msgq_bytes[msgid] -= original_msgsz;
 	msgq_wrap.msgq_num[msgid]--;
 	spin_unlock(&msgq_lock[msgid]);
+	kfree(node->msg);
 	kfree(node);
 	return (msgsz);
 }
@@ -491,6 +499,7 @@ static void		delete_datastructure(void)
 		{
 			tmp = list_entry(pos, struct ku_listnode, list);
 			list_del(pos);
+			kfree(tmp->msg);
 			kfree(tmp);
 		}
 		list_for_each_safe(pos, q, &msgq_wrap.msgq_entry_pid[i].list)

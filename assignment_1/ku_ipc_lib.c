@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "ku_ipc.h"
 
@@ -122,6 +123,10 @@ int main()
 	int i;
 	int ret_val[10];
 
+	struct ku_msgbuf msgbuf[KUIPC_MAXMSG];
+	struct ku_msgbuf *alloc_buf;
+	
+	//msg_get TESTCASE
 	for (i = 0; i < 10; i++)
 	{
 		ret_val[i] = ku_msgget(i, KU_IPC_CREAT);
@@ -136,19 +141,45 @@ int main()
 		printf("pid : [%d]\n", getpid());
 		printf("ret_val : [%d]\n", ret_val[i]);
 	}
+	
+	//msg_close TESTCASE
+//	for (i = 0; i < 10; i++)
+//	{
+//		ret_val[i] = ku_msgclose(i);
+//		printf("pid : [%d]\n", getpid());
+//		printf("ret_val : [%d]\n", ret_val[i]);
+//	}
+//      
+//	for (i = 0; i < 10; i++)
+//	{
+//		ret_val[i] = ku_msgclose(i);
+//		printf("pid : [%d]\n", getpid());
+//		printf("ret_val : [%d]\n", ret_val[i]);
+//	}
 
-	for (i = 0; i < 10; i++)
+	//msg_snd TESTCASE
 	{
-		ret_val[i] = ku_msgclose(i);
-		printf("pid : [%d]\n", getpid());
-		printf("ret_val : [%d]\n", ret_val[i]);
+		printf("\n@@@ MSGSND TESTCASE\n");
+
+		for (i = 0; i < 30; i++)
+		{
+			msgbuf[0].type = i;
+			memcpy(&msgbuf[0], "1234567890", 128);
+			ret_val[0] = ku_msgsnd(0, &msgbuf[0], 128, KU_IPC_NOWAIT);
+			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
+		}
 	}
-      
-	for (i = 0; i < 10; i++)
+
 	{
-		ret_val[i] = ku_msgclose(i);
-		printf("pid : [%d]\n", getpid());
-		printf("ret_val : [%d]\n", ret_val[i]);
+		printf("\n@@@ MSGSND TESTCASE\n");
+
+		for (i = 0; i < MAXMSG; i++)
+		{
+			msgbuf[0].type = i;
+			ret_val[0] = ku_msgrcv(0, &msgbuf[0], 128, KU_IPC_NOWAIT);
+			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
+		}
+
 	}
 
 	return (0);
