@@ -181,13 +181,15 @@ static int ku_ipc_msgclose_ioctl(unsigned long arg)
 	int		msgid;
 
 	PRINTMOD("ku_ipc_msgclose_ioctl");
+	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	ref_count = msgq_wrap.msgq_ref_count[msgid];
+	kfree(meta);
 
 	if (msgid < 0 && msgid > 9)
 		return (-1);
-	if (!is_using_msgq(current->pid, msgid))
+	if (!is_using_msgq(msgid, current->pid))
 		return (-1);
 
 	if (ref_count == 0)
@@ -197,6 +199,8 @@ static int ku_ipc_msgclose_ioctl(unsigned long arg)
 		remove_pid_from_list(msgid, current->pid);
 		return (0);
 	}
+
+return (0);
 }
 
 static int	is_blocked_condition(int msgid, int msgsz)
@@ -215,18 +219,20 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 	void	*msgp;
 
 	PRINTMOD("ku_ipc_msgsnd_ioctl");
+	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	msgsz = meta->msgsz;
 	msgflg = meta->msgflg;
 	msgp = meta->msgp;
 	ref_count = msgq_wrap.msgq_ref_count[msgid];
+	kfree(meta);
 
 	if (msgid < 0 && msgid > 9)
 		return (-1);
 	if (ref_count == 0)
 		return (-1);
-	if (!is_using_msgq(current->pid, msgid))
+	if (!is_using_msgq(msgid, current->pid))
 		return (-1);
 
 	if (is_blocked_condition(msgid, msgsz))
@@ -262,6 +268,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	void	*msgp;
 
 	PRINTMOD("ku_ipc_msgrcv_ioctl");
+	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	msgsz = meta->msgsz;
@@ -270,6 +277,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	msgp = meta->msgp;
 	msgtyp = meta->msgtyp;
 	ref_count = msgq_wrap.msgq_ref_count[msgid];
+	kfree(meta);
 
 	node = NULL;
 	aux = NULL;
@@ -278,7 +286,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 		return (-1);
 	if (ref_count == 0)
 		return (-1);
-	if (!is_using_msgq(current->pid, msgid))
+	if (!is_using_msgq(msgid, current->pid))
 		return (-1);
 
 	if (msgflg & KU_MSG_NOERROR)

@@ -67,6 +67,7 @@ int ku_msgclose(int msqid)
 	struct	msgq_metadata	msgq_meta; //change var name
 
 	dev = open("/dev/ku_ipc_dev", O_RDWR);
+	printf("fd : [%d]\n", dev);
 
 	msgq_meta.msqid = msqid;
 
@@ -135,6 +136,20 @@ int main()
 		printf("pid : [%d]\n", getpid());
 		printf("ret_val : [%d]\n", ret_val[i]);
 	}
-	
+
+	for (i = 0; i < 10; i++)
+	{
+		ret_val[i] = ku_msgclose(i);
+		printf("pid : [%d]\n", getpid());
+		printf("ret_val : [%d]\n", ret_val[i]);
+	}
+      
+	for (i = 0; i < 10; i++)
+	{
+		ret_val[i] = ku_msgclose(i);
+		printf("pid : [%d]\n", getpid());
+		printf("ret_val : [%d]\n", ret_val[i]);
+	}
+
 	return (0);
 }
