@@ -1,5 +1,5 @@
-#ifndef ku_ipc.h
-# define ku_ipc.h
+#ifndef KU_IPC_H
+# define KU_IPC_H
 
 # define KUIPC_MAXMSG 20
 # define KUIPC_MAXVOL 2720

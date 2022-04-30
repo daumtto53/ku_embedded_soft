@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include <ku_ipc.h>
+#include "ku_ipc.h"
 
 //ku.h start
 #define DEV_NAME			"ku_ipc_dev"
@@ -35,15 +35,21 @@ struct ku_msgbuf
 struct ku_listnode
 {
 	struct ku_msgbuf	msg;
-	struct list_head	*list;
+	struct list_head	list;
+};
+
+struct ku_pid_listnode
+{
+	int					pid;
+	struct list_head	list;
 };
 
 struct msgq_wrapper
 {
-	int					msgq_num[MAX_ENTRY];
-	int					msgq_bytes[MAX_ENTRY];
-	struct list_head	*msgq_entry[MAX_ENTRY];
-	struct list_head	*msgq_user_head[MAX_ENTRY];
+	int						msgq_ref_count[MAX_ENTRY];
+	int						msgq_bytes[MAX_ENTRY];
+	struct ku_listnode		msgq_entry[MAX_ENTRY];
+	struct ku_pid_listnode	msgq_entry_pid[MAX_ENTRY];
 };
 
 struct	msgq_metadata
@@ -54,6 +60,7 @@ struct	msgq_metadata
 	long	msgtyp;
 	int		msgflg;
 };
+
 //ku.h end
 
 int ku_msgget(int key, int msgflg)

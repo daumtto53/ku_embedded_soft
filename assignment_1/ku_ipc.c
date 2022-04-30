@@ -3,6 +3,7 @@
 #include <linux/module.h>
 #include <linux/errno.h>
 #include <linux/types.h>
+#include <linux/fs.h>
 #include <linux/fcntl.h>
 #include <linux/uaccess.h>
 #include <linux/spinlock.h>
@@ -12,7 +13,7 @@
 #include <linux/wait.h>
 #include <linux/sched.h>
 
-#include <ku_ipc.h>
+#include "ku_ipc.h"
 
 //define custom MARCROS
 #define DEV_NAME			"ku_ipc_dev"
@@ -110,11 +111,9 @@ static int add_pid_to_list(int msgid, int pid)
 static int ku_ipc_msgget_ioctl(unsigned long arg)
 {
 	struct msgq_metadata	*meta;
-	struct list_head		*pid_list;
 	int						ref_count;
 	int						msgid;
 	int						msgflg;
-	int						ret_msgid;
 
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
@@ -162,7 +161,7 @@ static int remove_pid_from_list(int msgid, int pid)
 	list_for_each_entry(node, &(msgq_wrap.msgq_entry_pid[msgid].list), list)
 		if (node->pid == pid)
 			break;
-	list_del(node->list);
+	list_del(&node->list);
 	kfree(node);
 	return (0);
 }
@@ -170,10 +169,8 @@ static int remove_pid_from_list(int msgid, int pid)
 static int ku_ipc_msgclose_ioctl(unsigned long arg)
 {
 	struct msgq_metadata	*meta;
-	struct list_head		*pid_list;
 	int						ref_count;
 	int		msgid;
-	int		ret_msgid;
 
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
@@ -198,7 +195,7 @@ static int ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int		ret_val;
 
-	swtich (cmd)
+	switch (cmd)
 	{
 		case KU_IPC_MSGGET :
 			PRINTMOD("KU_IPC_MSGGET");
@@ -279,6 +276,7 @@ static int		init_datastructure(void)
 	init_spinlock();
 	init_waitqueue();
 	init_msgq_wrapper();
+	ret = 1;
 	return (ret);
 }
 
@@ -302,5 +300,5 @@ void	__exit ku_ipc_exit(void)
 	PRINTMOD("ku_ipc_exit");
 }
 
-module_init(my_init);
-module_exit(my_exit);
+module_init(ku_ipc_init);
+module_exit(ku_ipc_exit);
