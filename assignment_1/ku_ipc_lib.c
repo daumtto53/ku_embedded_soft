@@ -182,6 +182,10 @@ int main()
 			printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
 		}
 
+		ret_val[0] = ku_msgrcv(0, &msgbuf[0], 128, 0, KU_IPC_NOWAIT);
+		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", 21, msgbuf[0].text, ret_val[0]);
+		
+
 	}
 
 	return (0);

@@ -273,6 +273,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	int		original_msgsz;
 	int		msgflg;
 	void	*msgp;
+	char	tmp[MSG_LEN];
 
 	PRINTMOD("ku_ipc_msgrcv_ioctl");
 	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
@@ -301,15 +302,21 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 		else
 			return (-1);
 	}
-
+	
 	if (msgtyp == 0)
 	{
-		if (msgq_wrap.msgq_ref_count[msgid] == 0)
+		if (msgq_wrap.msgq_num[msgid] == 0)
 		{
 			if (msgflg & KU_IPC_NOWAIT)
+			{
+				printk("NOWAIT\n");
 				return (-1);
+			}
 			else
-				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] <= 0);
+			{
+				printk("WATIT\n");
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_num[msgid] <= 0);
+			}
 		}
 
 		list_for_each_entry(node, &msgq_wrap.msgq_entry[msgid].list, list)
@@ -317,7 +324,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	}
 	else if (msgtyp > 0)
 	{
-		if ((msgq_wrap.msgq_ref_count[msgid] == 0) && (msgflg & KU_IPC_NOWAIT))
+		if ((msgq_wrap.msgq_num[msgid] == 0) && (msgflg & KU_IPC_NOWAIT))
 			return (-1);
 		while (node == NULL)
 		{
@@ -330,13 +337,13 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
 				return (-1);
 			else if (node == NULL)
-				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] <= 0);
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_num[msgid] <= 0);
 		}
 	}
 	else
 	{
 		msgtyp *= -1;
-		if ((msgq_wrap.msgq_ref_count[msgid] == 0) && (msgflg & KU_IPC_NOWAIT))
+		if ((msgq_wrap.msgq_num[msgid] == 0) && (msgflg & KU_IPC_NOWAIT))
 			return (-1);
 		while (node == NULL)
 		{
@@ -349,10 +356,12 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
 				return (-1);
 			else if (node == NULL)
-				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] <= 0);
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_num[msgid] <= 0);
 		}
 	}
-	copy_to_user(msgp, node->msg, msgsz);
+	memcpy(tmp, node->msg->text, msgsz);
+	memcpy(node->msg->text, tmp, msgsz);
+	copy_to_user(msgp, node->msg, sizeof(struct ku_msgbuf));
 	spin_lock(&msgq_lock[msgid]);
 	msgq_wrap.msgq_bytes[msgid] -= original_msgsz;
 	msgq_wrap.msgq_num[msgid]--;
