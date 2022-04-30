@@ -453,12 +453,37 @@ int		__init ku_ipc_init(void)
 
 static void		delete_datastructure(void)
 {
-	return ;
+	int		i;
+	struct ku_listnode		*tmp;
+	struct ku_pid_listnode	*pid_tmp;
+	struct list_head	*pos;
+	struct list_head	*q;
+
+
+	cdev_del(cd_cdev);
+	unregister_chrdev_region(dev_num, 1);
+
+	for (i = 0 ; i < MAX_ENTRY; i++)
+	{
+		list_for_each_safe(pos, q, &msgq_wrap.msgq_entry[i].list)
+		{
+			tmp = list_entry(pos, struct ku_listnode, list);
+			list_del(pos);
+			kfree(tmp);
+		}
+		list_for_each_safe(pos, q, &msgq_wrap.msgq_entry_pid[i].list)
+		{
+			pid_tmp = list_entry(pos, struct ku_pid_listnode, list);
+			list_del(pos);
+			kfree(pid_tmp);
+		}
+	}
 }
 
 void	__exit ku_ipc_exit(void)
 {
 	PRINTMOD("ku_ipc_exit");
+	delete_datastructure();
 }
 
 module_init(ku_ipc_init);

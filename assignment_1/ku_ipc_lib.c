@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/fcntl.h>>
-#include <sys/ioctl.h>>
+#include <sys/fcntl.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <string.h>
 
@@ -32,26 +32,6 @@ struct ku_msgbuf
 	char text[MSG_LEN];
 };
 
-struct ku_listnode
-{
-	struct ku_msgbuf	msg;
-	struct list_head	list;
-};
-
-struct ku_pid_listnode
-{
-	int					pid;
-	struct list_head	list;
-};
-
-struct msgq_wrapper
-{
-	int						msgq_ref_count[MAX_ENTRY];
-	int						msgq_bytes[MAX_ENTRY];
-	struct ku_listnode		msgq_entry[MAX_ENTRY];
-	struct ku_pid_listnode	msgq_entry_pid[MAX_ENTRY];
-};
-
 struct	msgq_metadata
 {
 	int		msqid;
@@ -60,7 +40,6 @@ struct	msgq_metadata
 	long	msgtyp;
 	int		msgflg;
 };
-
 //ku.h end
 
 int ku_msgget(int key, int msgflg)
