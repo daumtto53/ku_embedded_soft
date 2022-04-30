@@ -119,10 +119,12 @@ static int ku_ipc_msgget_ioctl(unsigned long arg)
 	int						msgflg;
 
 	PRINTMOD("ku_ipc_msgget_ioctl");
+	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
 	msgflg = meta->msgflg;
 	ref_count = msgq_wrap.msgq_ref_count[msgid];
+	kfree(meta);
 
 	if (msgid < 0 && msgid > 9)
 		return (-1);
@@ -346,6 +348,12 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	return (msgsz);
 }
 
+
+
+
+
+
+
 static long ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int		ret_val;
@@ -374,6 +382,13 @@ static long ku_ipc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	}
 	return (-1);
 }
+
+
+
+
+
+
+
 
 struct file_operations ku_ipc_fops = {
 	.open = ku_ipc_open,
@@ -440,7 +455,7 @@ int		__init ku_ipc_init(void)
 {
 	int		cdev_ret;
 
-	PRINTMOD("ku_ipc_init");
+	PRINTMOD("---- INIT ------");
 	cdev_ret = init_datastructure();
 	if (cdev_ret < 0)
 	{
@@ -482,7 +497,7 @@ static void		delete_datastructure(void)
 
 void	__exit ku_ipc_exit(void)
 {
-	PRINTMOD("ku_ipc_exit");
+	PRINTMOD("------EXIT-----");
 	delete_datastructure();
 }
 

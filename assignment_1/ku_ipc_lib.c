@@ -49,6 +49,7 @@ int ku_msgget(int key, int msgflg)
 	struct	msgq_metadata	msgq_meta; //change var name
 
 	dev = open("/dev/ku_ipc_dev", O_RDWR);
+	printf("fd : [%d]\n", dev);
 
 	msgq_meta.msqid = key;
 	msgq_meta.msgflg = msgflg;
@@ -118,7 +119,7 @@ int	ku_msgrcv(int msqid, void *msgp, int msgsz, long msgtyp, int msgflg)
 int main()
 {
 	int ret_val;
-	ret_val = ku_msgget(1, KU_IPC_CREAT);
+	ret_val = ku_msgget(3, KU_IPC_CREAT);
 	printf("ret_val : %d\n", ret_val);
 	return (0);
 }
