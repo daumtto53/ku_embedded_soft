@@ -164,8 +164,8 @@ int main()
 
 		for (i = 0; i < KUIPC_MAXMSG + 10; i++)
 		{
-			msgbuf[i].type = 0;
-			sprintf(tmp[i], "MSGSND : type:[%d]", i); 
+			msgbuf[i].type = 20 - i;
+			sprintf(tmp[i], "MSGSND : type:[%d]", 20-i); 
 			memcpy(&msgbuf[i].text, tmp[i], 128);
 			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, KU_IPC_NOWAIT);
 			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
@@ -178,7 +178,7 @@ int main()
 
 		for (i = 0; i < KUIPC_MAXMSG; i++)
 		{
-			ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_IPC_NOWAIT);
+			ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, i + 1, KU_IPC_NOWAIT);
 			printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
 		}
 

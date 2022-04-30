@@ -241,7 +241,7 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 		if (msgflg & KU_IPC_NOWAIT)
 			return (-1);
 		else
-			wait_event_interruptible(ku_wq, !is_blocked_condition(msgid, msgsz));
+			wait_event_interruptible(ku_wq, is_blocked_condition(msgid, msgsz));
 	}
 
 	new_node = (struct ku_listnode *)kmalloc(sizeof(struct ku_listnode), GFP_KERNEL);
@@ -309,8 +309,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (msgflg & KU_IPC_NOWAIT)
 				return (-1);
 			else
-				return(-1);
-				//wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] <= 0);
 		}
 
 		list_for_each_entry(node, &msgq_wrap.msgq_entry[msgid].list, list)
@@ -331,8 +330,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
 				return (-1);
 			else if (node == NULL)
-				return (-1);
-				//wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] <= 0);
 		}
 	}
 	else
@@ -351,8 +349,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 			if (node == NULL && (msgflg & KU_IPC_NOWAIT))
 				return (-1);
 			else if (node == NULL)
-				return (-1);
-				//wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] > 0);
+				wait_event_interruptible(ku_wq, msgq_wrap.msgq_ref_count[msgid] <= 0);
 		}
 	}
 	copy_to_user(msgp, node->msg, msgsz);
@@ -361,10 +358,10 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	msgq_wrap.msgq_num[msgid]--;
 	list_del(&node->list);
 	spin_unlock(&msgq_lock[msgid]);
-	kfree(node->msg);
-	kfree(node);
 	printk("RCV_IOCTL1 : msgtyp:[%ld], mtext:[%s]\n", node->msg->type, node->msg->text);
 	printk("RCV_IOCTL2 : qnum:[%d], qbytes:[%d]\n",msgq_wrap.msgq_num[msgid], msgq_wrap.msgq_bytes[msgid]);
+	kfree(node->msg);
+	kfree(node);
 	return (msgsz);
 }
 
