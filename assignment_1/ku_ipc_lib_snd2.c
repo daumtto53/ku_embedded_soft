@@ -130,19 +130,10 @@ int main()
 	//msg_get TESTCASE
 	for (i = 0; i < MAX_ENTRY; i++)
 	{
-		ret_val[i] = ku_msgget(i, KU_IPC_CREAT);
+		ret_val[i] = ku_msgget(i, KU_IPC_CREAT | KU_IPC_EXCL);
 		printf("pid : [%d]\n", getpid());
 		printf("ret_val : [%d]\n", ret_val[i]);
 	}
-
-
-	for (i = 0; i < MAX_ENTRY; i++)
-	{
-		ret_val[i] = ku_msgget(i, KU_IPC_CREAT);
-		printf("pid : [%d]\n", getpid());
-		printf("ret_val : [%d]\n", ret_val[i]);
-	}
-	
 
 	//msg_snd TESTCASE
 	{
@@ -170,26 +161,6 @@ int main()
 	//	}
 		
 		
-		printf("@@ TESTCASE : WAIT, SENDING 5 @@\n");
-		for (i = 0; i < 5; i++)
-		{
-			msgbuf[i].type = 6;
-			sprintf(tmp[i], "MSGSND : type:[%d]", 6); 
-			memcpy(&msgbuf[i].text, tmp[i], 128);
-			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
-			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
-		}
-
-		for (i = 0; i < 5; i++)
-		{
-			msgbuf[i].type = 4;
-			sprintf(tmp[i], "MSGSND : type:[%d]", 4); 
-			memcpy(&msgbuf[i].text, tmp[i], 128);
-			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
-			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
-		}
-
-
 	}	
 	return (0);
 
