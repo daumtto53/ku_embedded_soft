@@ -162,18 +162,12 @@ int main()
 	//		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
 	//	}
 
-		for (i = 0; i < KUIPC_MAXMSG; i++)
+		for (i = 0; i < 5; i++)
 		{
-			ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_MSG_NOERROR);
+			ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 4, KU_MSG_NOERROR);
 			printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
 
 		}
-		ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_MSG_NOERROR | KU_IPC_NOWAIT);
-
-		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
-
-		ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_MSG_NOERROR | KU_IPC_NOWAIT);
-		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
 
 	}
 

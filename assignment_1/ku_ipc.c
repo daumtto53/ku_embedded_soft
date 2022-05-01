@@ -259,7 +259,7 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 	spin_unlock(&msgq_lock[msgid]);
 	wake_up_interruptible(&ku_wq);
 	printk("MSGSND PRINT : qnum:[%d], qbytes:[%d]\n",msgq_wrap.msgq_num[msgid], msgq_wrap.msgq_bytes[msgid]);
-	return (msgsz);
+	return (1);
 }
 
 
@@ -296,13 +296,15 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 		return (-1);
 	if (!is_using_msgq(msgid, current->pid))
 		return (-1);
-
-	if (msgflg & KU_MSG_NOERROR)
+	if (ref_count == 0)
+		return (-1);
+	if (!(msgflg & KU_MSG_NOERROR))
 	{
-		if (msgsz > MSG_LEN)
+		if (msgsz >= MSG_LEN)
 			msgsz = MSG_LEN;
 		else
 			return (-1);
+			
 	}
 	
 	if (msgtyp == 0)
@@ -362,10 +364,12 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 		}
 	}
 	memcpy(tmp, node->msg->text, msgsz);
+	memset(node->msg->text, 0, sizeof(node->msg->text));
 	memcpy(node->msg->text, tmp, msgsz);
+		printk("node->msg : [%s], tmp : [%s]\n", node->msg->text, tmp);
 	copy_to_user(msgp, node->msg, sizeof(struct ku_msgbuf));
 	spin_lock(&msgq_lock[msgid]);
-	msgq_wrap.msgq_bytes[msgid] -= original_msgsz;
+	msgq_wrap.msgq_bytes[msgid] -= MSG_LEN;
 	msgq_wrap.msgq_num[msgid]--;
 	list_del(&node->list);
 	spin_unlock(&msgq_lock[msgid]);

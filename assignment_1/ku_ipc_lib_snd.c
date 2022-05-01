@@ -123,6 +123,7 @@ int main()
 	int i;
 	int ret_val[MAX_ENTRY];
 	char	tmp[50][MSG_LEN];
+	char	str_130[130];
 
 	struct ku_msgbuf msgbuf[KUIPC_MAXMSG + 30];
 	
@@ -146,13 +147,36 @@ int main()
 	//msg_snd TESTCASE
 	{
 		printf("\n@@@ MSGSND TESTCASE\n");
+		
+		//SND WAIT TEST1
+	//	for (i = 0; i < KUIPC_MAXMSG + 5; i++)
+	//	{
+	//		msgbuf[i].type = i;
+	//		sprintf(tmp[i], "MSGSND : type:[%d]", i); 
+	//		memcpy(&msgbuf[i].text, tmp[i], 128);
+	//		ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
+	//		printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
+	//	}
 
-		for (i = 0; i < KUIPC_MAXMSG + 1; i++)
+		//RCV WAIT TEST
+	//	printf("@@ TESTCASE : WAIT, SENDING 5 @@\n");
+	//	for (i = 0; i < 5; i++)
+	//	{
+	//		msgbuf[i].type = i;
+	//		sprintf(tmp[i], "MSGSND : type:[%d]", i); 
+	//		memcpy(&msgbuf[i].text, tmp[i], 128);
+	//		ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
+	//		printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
+	//	}
+		
+		
+		printf("@@ TESTCASE : WAIT, SENDING 5 @@\n");
+		for (i = 0; i < 3; i++)
 		{
 			msgbuf[i].type = i;
 			sprintf(tmp[i], "MSGSND : type:[%d]", i); 
 			memcpy(&msgbuf[i].text, tmp[i], 128);
-			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
+			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, KU_IPC_NOWAIT);
 			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
 		}
 	}	

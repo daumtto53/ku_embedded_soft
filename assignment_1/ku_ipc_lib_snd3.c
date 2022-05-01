@@ -123,9 +123,9 @@ int main()
 	int i;
 	int ret_val[MAX_ENTRY];
 	char	tmp[50][MSG_LEN];
+	char	str_130[130];
 
 	struct ku_msgbuf msgbuf[KUIPC_MAXMSG + 30];
-	struct ku_msgbuf *alloc_buf;
 	
 	//msg_get TESTCASE
 	for (i = 0; i < MAX_ENTRY; i++)
@@ -144,38 +144,43 @@ int main()
 	}
 	
 
-	//msg_rcv TESTCASE
+	//msg_snd TESTCASE
 	{
-		printf("\n@@@ MSGRCV TESTCASE\n");
-
-		//SND WAIT TEST
+		printf("\n@@@ MSGSND TESTCASE\n");
+		
+		//SND WAIT TEST1
 	//	for (i = 0; i < KUIPC_MAXMSG + 5; i++)
 	//	{
-	//		ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, 0);
-	//		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
+	//		msgbuf[i].type = i;
+	//		sprintf(tmp[i], "MSGSND : type:[%d]", i); 
+	//		memcpy(&msgbuf[i].text, tmp[i], 128);
+	//		ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
+	//		printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
 	//	}
 
 		//RCV WAIT TEST
+	//	printf("@@ TESTCASE : WAIT, SENDING 5 @@\n");
 	//	for (i = 0; i < 5; i++)
 	//	{
-	//		ret_val[0] = ku_msgrcv(0, &msgbuf[i], 6, 0, KU_MSG_NOERROR);
-	//		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
+	//		msgbuf[i].type = i;
+	//		sprintf(tmp[i], "MSGSND : type:[%d]", i); 
+	//		memcpy(&msgbuf[i].text, tmp[i], 128);
+	//		ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
+	//		printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
 	//	}
-
-		for (i = 0; i < KUIPC_MAXMSG; i++)
+		
+		
+		printf("@@ TESTCASE : WAIT, SENDING 5 @@\n");
+		for (i = 0; i < 5; i++)
 		{
-			ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_MSG_NOERROR);
-			printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
-
+			msgbuf[i].type = 5;
+			sprintf(tmp[i], "MSGSND : type:[%d]", 5); 
+			memcpy(&msgbuf[i].text, tmp[i], 128);
+			ret_val[0] = ku_msgsnd(0, msgbuf + i, 128, 0);
+			printf("MSGSND : case:[%d], ret_value:[%d]\n", i, ret_val[0]);
 		}
-		ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_MSG_NOERROR | KU_IPC_NOWAIT);
-
-		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
-
-		ret_val[0] = ku_msgrcv(0, &msgbuf[i], 128, 0, KU_MSG_NOERROR | KU_IPC_NOWAIT);
-		printf("MSGRCV : case:[%d], mtext:[%s], ret_value:[%d]\n", i, msgbuf[i].text, ret_val[0]);
-
-	}
-
+	}	
 	return (0);
+
 }
+
