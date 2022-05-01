@@ -5,9 +5,9 @@ PWD = $(shell pwd)
 
 default :
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
-	gcc -o $(obj-m:.o=_lib_1) $(obj-m:.o=_lib.c)
-	gcc -o $(obj-m:.o=_lib_2) $(obj-m:.o=_lib.c)
+	gcc -o $(obj-m:.o=_lib_snd) $(obj-m:.o=_lib_snd.c)
+	gcc -o $(obj-m:.o=_lib_rcv) $(obj-m:.o=_lib_rcv.c)
 clean :
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
-	rm $(obj-m:.o=_lib_1) $(obj-m:.o=_lib_2)
+	rm $(obj-m:.o=lib_snd) $(obj-m:.o=lib_rcv)
 
