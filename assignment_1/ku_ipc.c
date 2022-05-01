@@ -257,7 +257,7 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 	msgq_wrap.msgq_num[msgid]++;
 	spin_unlock(&msgq_lock[msgid]);
 	wake_up_interruptible(&ku_wq);
-	return (1);
+	return (0);
 }
 
 
