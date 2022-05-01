@@ -80,12 +80,12 @@ MODULE_LICENSE("GPL");
 
 static int ku_ipc_open(struct inode *inode, struct file *file)
 {
-	PRINTMOD("open");
+	PRINTMOD("OPEN");
 	return (0);
 }
 
 static int ku_ipc_release(struct inode *inode, struct file *file) {
-	PRINTMOD("release");
+	PRINTMOD("RELEASE");
 	return (0);
 }
 
@@ -105,7 +105,6 @@ static int add_pid_to_list(int msgid, int pid)
 
 	node = (struct ku_pid_listnode *)kmalloc(sizeof(struct ku_pid_listnode), GFP_KERNEL);
 	node->pid = pid;
-		printk("add_to_pid : pid=[%d]\n", current->pid);
 	list_add_tail(&node->list, &msgq_wrap.msgq_entry_pid[msgid].list);
 	return (1);
 }
@@ -117,7 +116,7 @@ static int ku_ipc_msgget_ioctl(unsigned long arg)
 	int						msgid;
 	int						msgflg;
 
-	PRINTMOD("ku_ipc_msgget_ioctl");
+	PRINTMOD("KU_IPC_MSGGET_IOCTL");
 	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
@@ -180,7 +179,7 @@ static int ku_ipc_msgclose_ioctl(unsigned long arg)
 	int						ref_count;
 	int		msgid;
 
-	PRINTMOD("ku_ipc_msgclose_ioctl");
+	PRINTMOD("KU_IPC_MSGCLOSE_IOCTL");
 	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
@@ -219,7 +218,7 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 	int		msgflg;
 	void	*msgp;
 
-	PRINTMOD("ku_ipc_msgsnd_ioctl");
+	PRINTMOD("KU_IPC_MSGSND_IOCTL");
 	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
@@ -258,7 +257,6 @@ static int ku_ipc_msgsnd_ioctl(unsigned long arg)
 	msgq_wrap.msgq_num[msgid]++;
 	spin_unlock(&msgq_lock[msgid]);
 	wake_up_interruptible(&ku_wq);
-	printk("MSGSND PRINT : qnum:[%d], qbytes:[%d]\n",msgq_wrap.msgq_num[msgid], msgq_wrap.msgq_bytes[msgid]);
 	return (1);
 }
 
@@ -277,7 +275,7 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	void	*msgp;
 	char	tmp[MSG_LEN];
 
-	PRINTMOD("ku_ipc_msgrcv_ioctl");
+	PRINTMOD("KU_IPC_MSGRCV_IOCTL");
 	meta = (struct msgq_metadata *)kmalloc(sizeof(struct msgq_metadata), GFP_KERNEL);
 	copy_from_user(meta, (struct msgq_metadata *)arg, sizeof(struct msgq_metadata));
 	msgid = meta->msqid;
@@ -366,7 +364,6 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	memcpy(tmp, node->msg->text, msgsz);
 	memset(node->msg->text, 0, sizeof(node->msg->text));
 	memcpy(node->msg->text, tmp, msgsz);
-		printk("node->msg : [%s], tmp : [%s]\n", node->msg->text, tmp);
 	copy_to_user(msgp, node->msg, sizeof(struct ku_msgbuf));
 	spin_lock(&msgq_lock[msgid]);
 	msgq_wrap.msgq_bytes[msgid] -= MSG_LEN;
@@ -374,8 +371,6 @@ static int ku_ipc_msgrcv_ioctl(unsigned long arg)
 	list_del(&node->list);
 	spin_unlock(&msgq_lock[msgid]);
 	wake_up_interruptible(&ku_wq);
-	printk("RCV_IOCTL1 : msgtyp:[%ld], mtext:[%s]\n", node->msg->type, node->msg->text);
-	printk("RCV_IOCTL2 : qnum:[%d], qbytes:[%d]\n",msgq_wrap.msgq_num[msgid], msgq_wrap.msgq_bytes[msgid]);
 	kfree(node->msg);
 	kfree(node);
 	return (msgsz);
@@ -475,7 +470,7 @@ static int		init_datastructure(void)
 {
 	int		ret;
 
-	PRINTMOD("init_datastructure");
+	PRINTMOD("INIT_DATASTRUCTURE");
 	init_cdev();
 	init_spinlock();
 	init_waitqueue();
