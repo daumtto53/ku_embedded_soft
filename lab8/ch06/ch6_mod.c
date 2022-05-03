@@ -42,7 +42,7 @@ static irqreturn_t ch6_mod_isr(int irq, void *dev_id)
 {
 	gpio_set_value(LED, 0);
 	gpio_set_value(LED, 1);
-	mod_timer(&timer, jiffies + two_sec_delay_jiffies);
+	//mod_timer(&timer, jiffies + two_sec_delay_jiffies);
 	getnstimeofday(&recent);
 	printk("CH6 : Detect at %ld secs\n", recent.tv_sec - start.tv_sec);
 
@@ -73,7 +73,8 @@ static int __init ch6_mod_init(void)
 	request_irq(irq_num, ch6_mod_isr, IRQF_TRIGGER_RISING, NULL, NULL);
 	two_sec_delay_jiffies = msecs_to_jiffies(2000);
 	timer_setup(&timer, timer_func_two_sec_led, 0);
-	add_timer(&timer);
+	timer.expires = jiffies + msecs_to_jiffies(1000);
+	//add_timer(&timer);
 
 	return (0);
 }
