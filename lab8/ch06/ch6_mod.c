@@ -6,13 +6,13 @@
 #include <linux/timer.h>
 #include <linux/gpio.h>
 #include <linux/interrupt.h>
+#include <linux/delay.h>
 
 MODULE_LICENSE("GPL");
 
 #define SENSOR 17
 #define LED 5
 #define DEV_NAME "ch6_mod_dev"
-#define PT(S)	printk("CH6 : %s\n ", S)
 
 static	int irq_num;
 struct	timespec start;
@@ -22,14 +22,14 @@ long	two_sec_delay_jiffies;
 
 static int ch6_mod_open(struct inode *inode, struct file *file)
 {
-	PT("OPEN");
+	printk("open\n");
 	getnstimeofday(&start);
 	return (0);
 }
 
 static int ch6_mod_release(struct inode *inode, struct file *file)
 {
-	PT("CLOSE");
+	printk("release\n");
 	return (0);
 }
 
@@ -40,10 +40,11 @@ struct file_operations ch6_fops = {
 
 static irqreturn_t ch6_mod_isr(int irq, void *dev_id)
 {
-	PT("IRQ");
+	printk("IRQ\n");
 	gpio_set_value(LED, 0);
+	mdelay(300);
 	gpio_set_value(LED, 1);
-	//mod_timer(&timer, jiffies + two_sec_delay_jiffies);
+	mod_timer(&timer, jiffies + two_sec_delay_jiffies);
 	getnstimeofday(&recent);
 	printk("CH6 : Detect at %ld secs\n", recent.tv_sec - start.tv_sec);
 
@@ -52,6 +53,7 @@ static irqreturn_t ch6_mod_isr(int irq, void *dev_id)
 
 static void timer_func_two_sec_led(struct timer_list *t)
 {
+	printk("Timer\n");
 	gpio_set_value(LED, 0);
 }
 
@@ -60,8 +62,10 @@ static struct cdev *cd_cdev;
 
 static int __init ch6_mod_init(void)
 {
-	PT("INIT");
 
+	int ret;
+
+	printk("init\n");
 
 	alloc_chrdev_region(&dev_num, 0, 1, DEV_NAME);
 	cd_cdev = cdev_alloc();
@@ -71,12 +75,17 @@ static int __init ch6_mod_init(void)
 	gpio_request_one(SENSOR, GPIOF_IN, "sensor");
 	gpio_request_one(LED, GPIOF_OUT_INIT_LOW, "led");
 	irq_num = gpio_to_irq(SENSOR);
-	request_irq(irq_num, ch6_mod_isr, IRQF_TRIGGER_RISING, NULL, NULL);
+	ret = request_irq(irq_num, ch6_mod_isr, IRQF_TRIGGER_RISING, "sensor_irq", NULL);
+	if (ret)
+	{
+		printk("unable to request IRQ\n");
+		free_irq(irq_num, NULL);
+	}
+	else
+		printk("IRQ request success\n");
 	two_sec_delay_jiffies = msecs_to_jiffies(2000);
-	//timer_setup(&timer, timer_func_two_sec_led, 0);
-	//timer.expires = jiffies + msecs_to_jiffies(2000);
-	//add_timer(&timer);
-	PT("INIT2");
+	timer_setup(&timer, timer_func_two_sec_led, 0);
+	timer.expires = jiffies + msecs_to_jiffies(2000);
 
 	return (0);
 }
@@ -84,7 +93,7 @@ static int __init ch6_mod_init(void)
 static void __exit ch6_mod_exit(void)
 {
 
-	PT("EXIT");
+	printk("exit\n");
 	cdev_del(cd_cdev);
 	unregister_chrdev_region(dev_num, 1);
 	free_irq(irq_num, NULL);
