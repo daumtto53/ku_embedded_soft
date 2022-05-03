@@ -40,6 +40,7 @@ struct file_operations ch6_fops = {
 
 static irqreturn_t ch6_mod_isr(int irq, void *dev_id)
 {
+	PT("IRQ");
 	gpio_set_value(LED, 0);
 	gpio_set_value(LED, 1);
 	//mod_timer(&timer, jiffies + two_sec_delay_jiffies);
@@ -72,9 +73,10 @@ static int __init ch6_mod_init(void)
 	irq_num = gpio_to_irq(SENSOR);
 	request_irq(irq_num, ch6_mod_isr, IRQF_TRIGGER_RISING, NULL, NULL);
 	two_sec_delay_jiffies = msecs_to_jiffies(2000);
-	timer_setup(&timer, timer_func_two_sec_led, 0);
-	timer.expires = jiffies + msecs_to_jiffies(1000);
+	//timer_setup(&timer, timer_func_two_sec_led, 0);
+	//timer.expires = jiffies + msecs_to_jiffies(2000);
 	//add_timer(&timer);
+	PT("INIT2");
 
 	return (0);
 }
