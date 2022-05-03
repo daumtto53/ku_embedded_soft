@@ -18,7 +18,9 @@ static	int irq_num;
 struct	timespec start;
 struct	timespec recent;
 struct	timer_list timer;
+struct	timer_list on_timer;
 long	two_sec_delay_jiffies;
+long	on_delay_jiffies;
 
 static int ch6_mod_open(struct inode *inode, struct file *file)
 {
@@ -41,10 +43,9 @@ struct file_operations ch6_fops = {
 static irqreturn_t ch6_mod_isr(int irq, void *dev_id)
 {
 	printk("IRQ\n");
+
 	gpio_set_value(LED, 0);
-	mdelay(300);
-	gpio_set_value(LED, 1);
-	mod_timer(&timer, jiffies + two_sec_delay_jiffies);
+	mod_timer(&on_timer, jiffies + on_delay_jiffies);
 	getnstimeofday(&recent);
 	printk("CH6 : Detect at %ld secs\n", recent.tv_sec - start.tv_sec);
 
@@ -53,8 +54,14 @@ static irqreturn_t ch6_mod_isr(int irq, void *dev_id)
 
 static void timer_func_two_sec_led(struct timer_list *t)
 {
-	printk("Timer\n");
 	gpio_set_value(LED, 0);
+}
+
+static void timer_func_on_led(struct timer_list *t)
+{
+	gpio_set_value(LED, 1);
+	mod_timer(&timer, jiffies + two_sec_delay_jiffies);
+
 }
 
 static dev_t dev_num;
@@ -84,8 +91,11 @@ static int __init ch6_mod_init(void)
 	else
 		printk("IRQ request success\n");
 	two_sec_delay_jiffies = msecs_to_jiffies(2000);
+	on_delay_jiffies = msecs_to_jiffies(300);
 	timer_setup(&timer, timer_func_two_sec_led, 0);
+	timer_setup(&on_timer, timer_func_on_led, 0);
 	timer.expires = jiffies + msecs_to_jiffies(2000);
+	on_timer.expires = jiffies + msecs_to_jiffies(300);
 
 	return (0);
 }
@@ -100,6 +110,7 @@ static void __exit ch6_mod_exit(void)
 	gpio_free(SENSOR);
 	gpio_free(LED);
 	del_timer(&timer);
+	del_timer(&on_timer);
 }
 
 module_init(ch6_mod_init);
