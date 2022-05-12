@@ -17,7 +17,7 @@ static void dht11_read(void)
 	int counter = 0;
 	int i = 0, j = 0;
 
-	memset(dht11_data, 0, 5 * sizeof(int));
+	dht11_data[0] = dht11_data[1] = dht11_data[2] = dht11_data[3] = dht11_data[4] = 0;
 	
 	gpio_direction_output(DHT11, 0);
 	gpio_set_value(DHT11, 0);
@@ -52,9 +52,9 @@ static void dht11_read(void)
 		}
 	}
 
-	if ((j >= 40) && (dht11_data[4] == ((dht11_data[1] + dht11_data[2] + dht11_data[3]) & 0xFF)))
+	if ((j >= 40) && (dht11_data[4] == ((dht11_data[0] + dht11_data[1] + dht11_data[2] + dht11_data[3]) & 0xFF)))
 	{
-		printk("Humidity: [%d.%d], Temperature: [%d.%d\n", dht11_data[0], dht11_data[1], dht_data[2], dht_data[3]);
+		printk("Humidity: [%d.%d], Temperature: [%d.%d\n", dht11_data[0], dht11_data[1], dht11_data[2], dht11_data[3]);
 	}
 	else
 		printk("data not good\n");
