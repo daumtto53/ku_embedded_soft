@@ -9,6 +9,6 @@ int main(void)
 
 	int dev;
 	dev = open("/dev/simple_sensor_dev", O_RDWR);
-	sleep(100);
+	sleep(1);
 	close(dev);
 }

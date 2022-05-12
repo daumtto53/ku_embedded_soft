@@ -52,16 +52,16 @@ static long simple_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			old = my_data;
 			printk("simple_rwlock : Read My_data = %ld\n", *old);
 			mdelay(500);
-			printk("simple_rwlock : After delay = Read My_data = %ld\n", *old);
 			read_unlock_irqrestore(&my_lock, flags);
 			break;
 		case IOCTL_WRITE :
 			write_lock_irqsave(&my_lock, flags);
 			printk("simple_rwlcok : write new data = %ld\n", arg);
-			new = (unsigned long *)kmalloc(sizeof(unsigned long , GFP_KERNEL));
+			new = (unsigned long *)kmalloc(sizeof(unsigned long), GFP_KERNEL);
 			*new = arg;
 			old = my_data;
 			my_data = new;
+			mdelay(200);
 			kfree(old);
 			write_unlock_irqrestore(&my_lock, flags);
 			break;
@@ -79,8 +79,6 @@ struct file_operations ch7_fops = {
 
 static int __init ch7_mod_init(void)
 {
-
-	int ret;
 
 	printk("init\n");
 

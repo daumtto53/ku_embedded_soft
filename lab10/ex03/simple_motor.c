@@ -55,7 +55,7 @@ void forward(int round, int delay)
 
 	for (i = 0; i < ONEROUND * round; i++)
 	{
-		for (j = 0; j < 8; j++)
+		for (j = 0; j < STEPS; j++)
 		{
 			setstep(b[j], p[j], y[j], o[j]);
 			udelay(delay);
@@ -66,10 +66,10 @@ void forward(int round, int delay)
 
 static int __init simple_motor_init(void)
 {
-	gpio_set_request_one(PIN1, GPIOF_OUT_INIT_LOW, "p1");
-	gpio_set_request_one(PIN2, GPIOF_OUT_INIT_LOW, "p2");
-	gpio_set_request_one(PIN3, GPIOF_OUT_INIT_LOW, "p3");
-	gpio_set_request_one(PIN4, GPIOF_OUT_INIT_LOW, "p4");
+	gpio_request_one(PIN1, GPIOF_OUT_INIT_LOW, "p1");
+	gpio_request_one(PIN2, GPIOF_OUT_INIT_LOW, "p2");
+	gpio_request_one(PIN3, GPIOF_OUT_INIT_LOW, "p3");
+	gpio_request_one(PIN4, GPIOF_OUT_INIT_LOW, "p4");
 
 	forward(1, 3000);
 	mdelay(3000);

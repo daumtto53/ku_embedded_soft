@@ -16,7 +16,7 @@
 #define IOCTL_READ      _IOWR(SIMPLE_IOCTL_NUM, IOCTL_NUM1, unsigned long *)
 #define IOCTL_WRITE     _IOWR(SIMPLE_IOCTL_NUM, IOCTL_NUM2, unsigned long *)
 
-int main()
+int main(int argc, char **argv)
 {
 	int dev;
 	int i, n, op;

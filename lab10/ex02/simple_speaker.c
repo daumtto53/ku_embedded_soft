@@ -4,7 +4,7 @@
 #include <linux/gpio.h>
 #include <linux/delay.h>
 
-MODULE_LICENSE("GPL")
+MODULE_LICENSE("GPL");
 
 #define SPEAKER 12
 
@@ -27,7 +27,7 @@ static int __init simple_speaker_init(void)
 	int notes[] = {1911,1702 ,1516  ,1431  ,1275  , 1136 , 1012 };
 	int i = 0;
 
-	gpio_request(SPEAKER, GPIOF_OUT_INIT_LOW, "SPEAKER");
+	gpio_request_one(SPEAKER, GPIOF_OUT_INIT_LOW, "SPEAKER");
 	for (i = 0; i < 7; i++)
 	{
 		play(notes[i]);

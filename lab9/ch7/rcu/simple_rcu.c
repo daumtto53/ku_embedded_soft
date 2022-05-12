@@ -58,7 +58,7 @@ static long simple_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		case IOCTL_WRITE :
 			spin_lock_irqsave(&my_lock, flags);
 			printk("simple_rcu: write new data = %ld\n", arg);
-			new = (unsigned long *)kmalloc(sizeof(unsigned long , GFP_KERNEL));
+			new = (unsigned long *)kmalloc(sizeof(unsigned long) ,GFP_KERNEL);
 			*new = arg;
 			old = rcu_dereference(my_data);
 			rcu_assign_pointer(my_data, new);
@@ -82,7 +82,7 @@ static int __init ch7_mod_init(void)
 {
 
 	int ret;
-
+	unsigned long *data;
 	printk("init\n");
 
 	alloc_chrdev_region(&dev_num, 0, 1, DEV_NAME);
@@ -93,9 +93,10 @@ static int __init ch7_mod_init(void)
 	spin_lock_init(&my_lock);
 
 	data = (unsigned long *)kmalloc(sizeof(unsigned long), GFP_KERNEL);
-	*data = 0;
+	data = 0;
 
 	rcu_assign_pointer(my_data, data);
+	mdelay(200);
 	printk("simple_rcu: init_module\n");
 
 	return (0);
@@ -108,9 +109,9 @@ static void __exit ch7_mod_exit(void)
 
 	spin_lock_irqsave(&my_lock, flags);
 	data = rcu_dereference(my_data);
-	rcu_assgin_pointer(my_data, NULL);
+	rcu_assign_pointer(my_data, NULL);
 	kfree(data);
-	spin_lock_irqrestore(&my_lock, flags);
+	spin_unlock_irqrestore(&my_lock, flags);
 
 	cdev_del(cd_cdev);
 	unregister_chrdev_region(dev_num, 1);

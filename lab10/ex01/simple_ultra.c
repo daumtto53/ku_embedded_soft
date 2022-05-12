@@ -41,8 +41,8 @@ static irqreturn_t simple_ultra_isr(int irq, void *dev_id)
 		printk("simple_ultra:Echo DOWN\n");
 		if (gpio_get_value(ULTRA_ECHO) == 0)
 		{
-			echo_end = tmp_time;
-			time  = echo_end - echo_start;
+			echo_stop= tmp_time;
+			time  = ktime_to_us(ktime_sub(echo_stop ,echo_start));
 			cm = (int)time / 58;
 			printk("simple_ultra: Detect %d cm\n", cm);
 
@@ -65,7 +65,7 @@ static int __init simple_ultra_init(void)
 	if (echo_valid_flag == 3)
 	{
 		echo_start = ktime_set(0,1);
-		echo_end = ktime_set(0,1);
+		echo_stop= ktime_set(0,1);
 		echo_valid_flag = 0;
 
 		gpio_set_value(ULTRA_TRIG, 1);

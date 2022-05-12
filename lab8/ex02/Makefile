@@ -1,11 +1,11 @@
-obj-m:=simple_switch.o
+obj-m:=simple_sensor.o
 KERNELDIR:=~/linux-rpi/
 ARM:= ARCH=arm CROSS_COMPILE=/usr/bin/arm-linux-gnueabi-
 PWD:=$(shell pwd)
 
 default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) $(ARM) modules
-	arm-linux-gnueabi-gcc $(obj-m:.o=_app.c) -o $(obj-m:.o=_app)
+	arm-linux-gnueabi-gcc -o $(obj-m:.o=_app) $(obj-m:.o=_app.c)
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) $(ARM) clean
 	rm $(obj-m:.o=_app)
