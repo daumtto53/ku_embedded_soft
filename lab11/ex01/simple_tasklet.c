@@ -21,7 +21,7 @@ static int irq_num;
 
 void simple_tasklet_func(unsigned long recv_data) {
 	struct my_data *tmp_data;
-	temp_data = (struct my_data *) recv_data;
+	tmp_data = (struct my_data *) recv_data;
 	printk("today is %d %d %d\n", tmp_data->year, tmp_data->month, tmp_data->day);
 }
 
@@ -44,7 +44,7 @@ static int __init simple_tasklet_init(void)
 
 	tasklet_init(&my_tasklet, simple_tasklet_func, (unsigned long)&my_tasklet_data);
 
-	gpio_request_one(SWITCH, GPIO_IN, "SWITCH");
+	gpio_request_one(SWITCH, GPIOF_IN, "SWITCH");
 	irq_num = gpio_to_irq(SWITCH);
 	ret = request_irq(irq_num, simple_tasklet_isr, IRQF_TRIGGER_FALLING, "switch_irq", NULL);
 	return (0);

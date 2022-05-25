@@ -53,9 +53,9 @@ static irqreturn_t simple_workqueue_isr(int irq, void *data)
 
 	if (my_wq)
 	{
-		work = (my_work_t *)malloc(sizeof(my_work_t), GFP_KERNEL);
+		work = (my_work_t *)kmalloc(sizeof(my_work_t), GFP_KERNEL);
 		INIT_WORK((struct work_struct *)work, my_work_func);
-		ret = queue_work(my_wq, (struct wrok_struct *)work);
+		ret = queue_work(my_wq, (struct work_struct *)work);
 	}
 	return IRQ_HANDLED;
 }
@@ -67,7 +67,7 @@ static int __init simple_tasklet_init(void)
 
 	my_wq = create_workqueue("my_workqueue");
 
-	gpio_request_one(SWITCH, GPIO_IN, "SWITCH");
+	gpio_request_one(SWITCH, GPIOF_IN, "SWITCH");
 	irq_num = gpio_to_irq(SWITCH);
 	ret = request_irq(irq_num, simple_workqueue_isr, IRQF_TRIGGER_FALLING, "switch_irq", NULL);
 	return (0);

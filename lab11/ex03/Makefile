@@ -1,4 +1,4 @@
-obj-m:=simple_kthread.o
+obj-m:=simple_workqueue.o
 KERNELDIR:=~/linux-rpi/
 ARM:= ARCH=arm CROSS_COMPILE=/usr/bin/arm-linux-gnueabi-
 PWD:=$(shell pwd)
