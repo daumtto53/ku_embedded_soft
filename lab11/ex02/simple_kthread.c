@@ -4,9 +4,9 @@
 #include <linux/kthread.h>
 #include <linux/delay.h>
 
-MODULE_LICENSCE("GPL");
+MODULE_LICENSE("GPL");
 
-struct task_strcut *my_kthread = NULL;
+struct task_struct *my_kthread = NULL;
 
 int simple_kthread_func(void *data)
 {
