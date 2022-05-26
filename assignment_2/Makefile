@@ -6,6 +6,7 @@ PWD:=$(shell pwd)
 default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) $(ARM) modules
 	gcc -o ku_app ku_app.c ku_lib.c
+	arm-linux-gnueabi-gcc -o ku_app ku_app.c ku_lib.c
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) $(ARM) clean
