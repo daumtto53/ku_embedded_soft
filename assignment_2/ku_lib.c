@@ -7,6 +7,7 @@ int get_dispenser_data(struct ku_dispenser_t *dsp)
 
 	dispenser_fd = open(DISPENSER_FILE_NAME, O_RDWR);
 	ret = ioctl(dispenser_fd, KU_DISPENSER_GETDATA, dsp);
+	printf("dsp data : ktime:[%lld], distance:[%d]\n", dsp->ktime, dsp->ktime);
 	close(dispenser_fd);
 	return (ret);
 }

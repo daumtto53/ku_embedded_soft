@@ -66,6 +66,10 @@ int main()
 	call_count = 0;
 	while (1)
 	{
+
+				make_sound();
+				return (0);
+
 		ret = get_dispenser_data(&dispenser_data);
 		if (!ret)
 			print_err("ERROR\n");
