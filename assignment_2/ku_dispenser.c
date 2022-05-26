@@ -309,6 +309,7 @@ static int __init ku_dispenser_init(void)
 
 	int ret;
 
+	printk("ku_dispenser : init()\n");
 	INIT_LIST_HEAD(&head.list);
 	init_waitqueue_head(&wq);
 
@@ -322,20 +323,23 @@ static int __init ku_dispenser_init(void)
 	gpio_request_one(ULTRA_ECHO, GPIOF_IN, "ULTRA_ECHO");
 	irq_num = gpio_to_irq(ULTRA_ECHO);
 	ret = request_irq(irq_num, ultra_isr, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, "ULTRA_ECHO", NULL);
-	if (!ret)
+	if (ret)
 	{
 		printk("ULTRA : unable to request IRQ\n");
 		free_irq(irq_num, NULL);
 	}
 
+	printk("ku_dispenser : gpio_request_STEPPER_");
 	gpio_request_one(PIN1, GPIOF_OUT_INIT_LOW, "p1");
 	gpio_request_one(PIN2, GPIOF_OUT_INIT_LOW, "p2");
 	gpio_request_one(PIN3, GPIOF_OUT_INIT_LOW, "p3");
 	gpio_request_one(PIN4, GPIOF_OUT_INIT_LOW, "p4");
 
+	printk("ku_dispenser : gpio_request_SPEAKER");
 	gpio_request_one(SPEAKER, GPIOF_OUT_INIT_LOW, "speaker");
 
 	//make timer;
+	printk("ku_dispenser : timer init\n");
 	timer_setup(&timer, timer_initiate_sonic, 0);
 	timer.expires = jiffies + msecs_to_jiffies(60 * 10);
 
