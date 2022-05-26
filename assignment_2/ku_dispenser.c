@@ -247,17 +247,6 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static int ku_dispenser_open(struct inode *inode, struct file *file)
-{
-	printk("ku_dispenser : open()\n");
-	return (0);
-}
-
-static int ku_dispenser_release(struct inode *inode, struct file *file) {
-	printk("ku_dispenser : close()\n");
-	return (0);
-}
-
 //speaker
 static void play(int note)
 {
@@ -270,6 +259,17 @@ static void play(int note)
 		gpio_set_value(SPEAKER, 0);
 		udelay(note);
 	}
+}
+
+static int ku_dispenser_open(struct inode *inode, struct file *file)
+{
+	printk("ku_dispenser : open()\n");
+	return (0);
+}
+
+static int ku_dispenser_release(struct inode *inode, struct file *file) {
+	printk("ku_dispenser : close()\n");
+	return (0);
 }
 
 
@@ -292,7 +292,6 @@ static long ku_dispenser_ioctl(struct file *file, unsigned int cmd, unsigned lon
 			mdelay(500);
 			gpio_set_value(SPEAKER, 0);
 			return (0);
-
 	}
 	return (0);
 }
@@ -328,6 +327,9 @@ static int __init ku_dispenser_init(void)
 		printk("ULTRA : unable to request IRQ\n");
 		free_irq(irq_num, NULL);
 	}
+	else
+		printk("ULTRA : IRQ request SUCESS\n");
+
 
 	printk("ku_dispenser : gpio_request_STEPPER_");
 	gpio_request_one(PIN1, GPIOF_OUT_INIT_LOW, "p1");
