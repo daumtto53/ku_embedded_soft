@@ -180,8 +180,9 @@ static void timer_initiate_sonic(struct timer_list *t)
 
 		gpio_set_value(ULTRA_TRIG, 1);
 		udelay(10);
-		gpio_set_value(ULTRA_ECHO, 0);
+		gpio_set_value(ULTRA_TRIG, 0);
 		echo_flag = 1;
+		printk("ku_dispenser : TRIGGERING SONIC\n");
 	}
 }
 
@@ -243,6 +244,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 
 			list_add_tail(&tmp->list, &head.list);
 			list_count++;
+			wake_up_interruptible(&wq);
 
 			//Timer 가동
 			if (dispenser_open)
