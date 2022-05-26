@@ -61,12 +61,8 @@ int main()
 
 	log_f = fopen(LOG_FILE_NAME, "a");
 
-	{
-		if ((dispenser_fd = open("/dev/ku_dispenser_dev", O_RDWR)) == -1)
-			printf("ku_dispenser_dev open failed\n");
-		close_dispenser();
+		make_sound();
 		return (0);
-	}
 
 
 
