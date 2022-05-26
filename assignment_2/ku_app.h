@@ -13,8 +13,8 @@
 
 # define LOG_FILE_NAME	"../dispenser_log"
 
-# define EMPTY_DISTANCE	25.0
-# define FULL_DISTANCE	20.0
+# define EMPTY_DISTANCE	25
+# define FULL_DISTANCE	20
 
 void	print_err(char *s);
 void	write_log(int log_fd, char *status, struct ku_dispenser_t *rcv_dispenser);

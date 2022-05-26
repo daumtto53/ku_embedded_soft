@@ -18,8 +18,8 @@
 # define LOG_FILE_NAME	"../dispenser_log"
 # define DISPENSER_FILE_NAME	"/dev/dispenser_dev"
 
-# define EMPTY_DISTANCE	25.0
-# define FULL_DISTANCE	20.0
+# define EMPTY_DISTANCE 10
+# define FULL_DISTANCE	5
 
 #define IOCTL_START_NUM		0x80
 #define IOCTL_NUM1	IOCTL_START_NUM + 1
@@ -36,7 +36,7 @@
 
 struct ku_dispenser_t
 {
-	double distance;
+	int distance;
 	int	is_dispenser_open;
 	struct tm timeval;
 	long long ktime;
