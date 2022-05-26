@@ -247,7 +247,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 			wake_up_interruptible(&wq);
 
 			//Timer 가동
-			if (dispenser_open)
+			if (cm > 2)
 				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 * 5));
 			else
 				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 * 15));
