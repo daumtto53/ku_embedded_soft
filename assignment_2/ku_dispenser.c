@@ -259,6 +259,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 //speaker
 static void play(int note)
 {
+	printk("ku_dispenser : beep\n");
 	int i = 0;
 
 	for (i=0; i < 100; i++)

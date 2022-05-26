@@ -74,18 +74,24 @@ int main()
 		{
 			if (dispenser_data.distance < FULL_DISTANCE && dispenser_data.is_dispenser_open)
 			{
+				printf("dispenser_close : time[%d:%d:%d] distance[%d]\n", dispenser_data.timeval.tm_hour, \
+					dispenser_data.timeval.tm_min, dispenser_data.timeval.tm_sec, dispenser_data.distance);
 				close_dispenser();
 				call_count = 0;
 				strcpy(status, "OUTLET_CLOSE");
 			}
 			else if (dispenser_data.distance > EMPTY_DISTANCE && !dispenser_data.is_dispenser_open && !call_count)
 			{
+				printf("dispenser_open : time[%d:%d:%d] distance[%d]\n", dispenser_data.timeval.tm_hour, \
+					dispenser_data.timeval.tm_min, dispenser_data.timeval.tm_sec, dispenser_data.distance);
 				open_dispenser();
 				call_count += 1;
 				strcpy(status, "OUTLET_OPEN");
 			}
 			else if(dispenser_data.distance > EMPTY_DISTANCE && call_count)
 			{
+				printf("dispenser_MakeSound: is_open[%d], time[%d:%d:%d] distance[%d]\n", dispenser_data.is_dispenser_open, dispenser_data.timeval.tm_hour, \
+					dispenser_data.timeval.tm_min, dispenser_data.timeval.tm_sec, dispenser_data.distance);
 				make_sound();
 				make_sound();
 				strcpy(status, "EMPTY");
