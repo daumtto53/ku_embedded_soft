@@ -141,6 +141,7 @@ static void send_dispenser_data(unsigned long arg)
 	struct ku_dispenser_t	*to_send = (struct ku_dispenser_t *)arg;
 	struct ku_listnode		*to_send_list;
 
+	printk("ku_dispenser : send_dispenser_data\n");
 	if (list_count == 0)
 		wait_event_interruptible(wq, list_count > 0);
 	list_for_each_entry(to_send_list, &head.list, list)
@@ -195,6 +196,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 	struct tm tm_val;
 
 
+	printk("ku_dispenser : ultra_isr\n");
 	tmp_time = ktime_get();
 	if (echo_flag == 1)
 	{
@@ -243,7 +245,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 			if (dispenser_open)
 				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 / 2));
 			else
-				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 * 5 * 60));
+				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 * 2 / 2));
 		}
 	}
 	return IRQ_HANDLED;
