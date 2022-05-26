@@ -159,6 +159,8 @@ static void timer_initiate_sonic(struct timer_list *t)
 	struct list_head *q;
 	struct ku_listnode *tmp;
 	//real_time. So Over buffer -> delete.
+	
+	printk("ku_dispenser : timer_initiate_sonic\n");
 	if (list_count > 1000)
 	{
 		list_for_each_safe(pos, q, &head.list)
@@ -196,7 +198,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 	struct tm tm_val;
 
 
-	printk("ku_dispenser : ultra_isr\n");
+	printk("ku_dispenser : ultra_isr - echo_flag[%d]\n", echo_flag);
 	tmp_time = ktime_get();
 	if (echo_flag == 1)
 	{
@@ -237,6 +239,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 			dsp->distance = cm;
 			dsp->is_dispenser_open = dispenser_open;
 			dsp->timeval = tm_val;
+			printk("ku_dispenser : distance[%d], ktime[%lld]\n", cm, time);
 
 			list_add_tail(&tmp->list, &head.list);
 			list_count++;
