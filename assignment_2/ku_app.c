@@ -61,22 +61,13 @@ int main()
 
 	log_f = fopen(LOG_FILE_NAME, "a");
 
-		make_sound();
-		return (0);
-
-
-
-
 	call_count = 0;
 	while (1)
 	{
-
-			close_dispenser();
-			return(0);
-
 		ret = get_dispenser_data(&dispenser_data);
 
 		printf("%d %d\n", dispenser_data.timeval.tm_year, dispenser_data.distance);
+		return (0);
 		if (!ret)
 			print_err("ERROR\n");
 		return (0);
