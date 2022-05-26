@@ -66,7 +66,7 @@ int main()
 	{
 		ret = get_dispenser_data(&dispenser_data);
 
-		printf("%d %d %d\n", dispenser_data.timeval.tm_year + 1900, dispenser_data.timeval.tm_hour, dispenser_data.distance);
+		printf("%d %d %d is_open[%d]\n", dispenser_data.timeval.tm_year + 1900, dispenser_data.timeval.tm_hour, dispenser_data.distance, dispenser_data.is_dispenser_open);
 		//if (is_data_time_off_limit(dispenser_data))
 		if (ret)
 			continue;
