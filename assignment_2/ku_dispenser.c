@@ -248,9 +248,9 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 
 			//Timer 가동
 			if (dispenser_open)
-				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 / 2));
+				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000));
 			else
-				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 * 2 / 2));
+				mod_timer(&timer, jiffies + msecs_to_jiffies(1 * 1000 * 10));
 		}
 	}
 	return IRQ_HANDLED;
