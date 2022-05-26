@@ -1,17 +1,32 @@
-#include "./ku_app.h"
 #include "./ku_lib.h"
+
+# include <stdio.h>
+# include <string.h>
+# include <stdlib.h>
+# include <fcntl.h>
+# include <sys/time.h>
+# include <time.h>
+
+# define FALSE 0
+# define TRUE 1
+
+# define LOG_FILE_NAME  "../dispenser_log"
+
+# define EMPTY_DISTANCE 25.0
+# define FULL_DISTANCE  20.0
 
 void	print_err(char *s)
 {
 	printf("%s\n", s);
 }
 
-void	write_log(int log_fd, char *status, struct ku_dispenser_t *rcv_dispenser)
+void	write_log(FILE *log_f, char *status, struct ku_dispenser_t *rcv_dispenser)
 {
 	char *format_string;
 	struct ku_dispenser_t *p = rcv_dispenser;
 
-	fprintf(log_fd, "{%lld} [%d %d %d %d:%d:%d] #STATUS : %s", p->ktime, \
+
+	fprintf(log_f, "{%lld} [%d %d %d %d:%d:%d] #STATUS : %s", p->ktime, \
 		p->timeval.tm_year + 1900, p->timeval.tm_mon, p->timeval.tm_mday, p->timeval.tm_hour, p->timeval.tm_min, \
 		p->timeval.tm_sec, status);
 }
@@ -38,14 +53,15 @@ int		is_data_time_off_limit(struct ku_dispenser_t dsp_data)
 
 int main()
 {
-	int	log_fd;
+	FILE	*log_f;
 	int	dispenser_fd;
 	int	ret;
 	int	call_count;
 	char	status[30];
 	struct ku_dispenser_t dispenser_data;
 
-	log_fd = open(LOG_FILE_NAME, O_CREAT | O_EXCL | O_RDWR | O_APPEND);
+	log_f = fopen(LOG_FILE_NAME, "a");
+
 
 	call_count = 0;
 	while (1)
@@ -76,7 +92,7 @@ int main()
 				strcpy(status, "EMPTY");
 			}
 		}
-		//write_log(log_fd, status, &dispenser_data);
+		write_log(log_f, status, &dispenser_data);
 		memset(&dispenser_data, 0, sizeof(struct ku_dispenser_t));
 	}
 	return (0);

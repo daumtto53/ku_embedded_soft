@@ -9,7 +9,6 @@ default:
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) $(ARM) clean
-	rm $(obj-m:.o=_app)
 	rm ku_app
 
 scp:

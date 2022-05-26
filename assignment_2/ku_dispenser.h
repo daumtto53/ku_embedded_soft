@@ -43,7 +43,7 @@
 # define ULTRA_TRIG 23
 # define ULTRA_ECHO 24
 
-# define NORMAL_DELAY_MSEC 6 * 10 * 5
+# define NORMAL_DELAY_MSEC 1 * 1000 * 10
 
 struct ku_dispenser_t
 {
