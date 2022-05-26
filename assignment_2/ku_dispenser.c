@@ -351,7 +351,7 @@ static int __init ku_dispenser_init(void)
 	printk("ku_dispenser : timer init\n");
 	timer_setup(&timer, timer_initiate_sonic, 0);
 	timer.expires = jiffies + msecs_to_jiffies(60 * 10);
-	add_timer(&my_timer.timer);
+	add_timer(&timer);
 
 	return (0);
 }
