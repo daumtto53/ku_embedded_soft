@@ -18,9 +18,6 @@
 # define LOG_FILE_NAME	"../dispenser_log"
 # define DISPENSER_FILE_NAME	"/dev/dispenser_dev"
 
-# define EMPTY_DISTANCE 10
-# define FULL_DISTANCE	5
-
 #define IOCTL_START_NUM		0x80
 #define IOCTL_NUM1	IOCTL_START_NUM + 1
 #define IOCTL_NUM2	IOCTL_START_NUM + 2

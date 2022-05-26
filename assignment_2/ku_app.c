@@ -12,8 +12,8 @@
 
 # define LOG_FILE_NAME  "../dispenser_log"
 
-# define EMPTY_DISTANCE 25.0
-# define FULL_DISTANCE  20.0
+# define EMPTY_DISTANCE 10
+# define FULL_DISTANCE  5
 
 void	print_err(char *s)
 {
