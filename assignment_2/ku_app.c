@@ -67,8 +67,8 @@ int main()
 	while (1)
 	{
 
-				make_sound();
-				return (0);
+			close_dispenser();
+			return(0);
 
 		ret = get_dispenser_data(&dispenser_data);
 
