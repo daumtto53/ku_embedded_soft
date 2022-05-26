@@ -16,7 +16,7 @@
 # define TRUE 1
 
 # define LOG_FILE_NAME	"../dispenser_log"
-# define DISPENSER_FILE_NAME	"/dev/dispenser_dev"
+# define DISPENSER_FILE_NAME	"/dev/ku_dispenser_dev"
 
 #define IOCTL_START_NUM		0x80
 #define IOCTL_NUM1	IOCTL_START_NUM + 1

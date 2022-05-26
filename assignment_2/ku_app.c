@@ -71,8 +71,11 @@ int main()
 				return (0);
 
 		ret = get_dispenser_data(&dispenser_data);
+
+		printf("%d %d\n", dispenser_data.timeval.tm_year, dispenser_data.distance);
 		if (!ret)
 			print_err("ERROR\n");
+		return (0);
 		if (is_data_time_off_limit(dispenser_data))
 			continue;
 		else
