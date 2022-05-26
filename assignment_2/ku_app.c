@@ -1,4 +1,5 @@
 #include "./ku_app.h"
+#include "./ku_lib.h"
 
 void	print_err(char *s)
 {
@@ -73,7 +74,7 @@ int main()
 				strcpy(status, "EMPTY");
 			}
 		}
-		write_log(log_fd, status, &dispenser_data);
+		//write_log(log_fd, status, &dispenser_data);
 		memset(&dispenser_data, 0, sizeof(struct ku_dispenser_t));
 	}
 	return (0);

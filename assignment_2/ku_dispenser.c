@@ -6,6 +6,8 @@
 # include <linux/fs.h>
 # include <linux/fcntl.h>
 # include <linux/uaccess.h>
+# include <linux/gpio.h>
+# include <linux/delay.h>
 # include <linux/spinlock.h>
 # include <linux/list.h>
 # include <linux/slab.h>
@@ -13,6 +15,14 @@
 # include <linux/wait.h>
 # include <linux/sched.h>
 # include <linux/uaccess.h>
+# include <linux/slab.h>
+# include <linux/list.h>
+# include <linux/types.h>
+# include <linux/jiffies.h>
+# include <linux/interrupt.h>
+
+# define TRUE 1
+# define FALSE 0
 
 # define DEV_NAME	"ku_dispenser_dev"
 
@@ -42,6 +52,8 @@
 
 # define NORMAL_DELAY_MSEC 6 * 10 * 5
 
+MODULE_LICENSE("GPL");
+
 struct ku_dispenser_t
 {
 	double distance;
@@ -64,7 +76,7 @@ static ktime_t echo_start;
 static ktime_t echo_stop;
 static int		echo_flag = 3;
 
-static ku_listnode head;
+static struct	ku_listnode head;
 static int	list_count = 0;
 
 static dev_t dev_num;
@@ -127,14 +139,13 @@ static void send_dispenser_data(unsigned long arg)
 {
 	struct ku_dispenser_t	*to_send = (struct ku_dispenser_t *)arg;
 	struct ku_listnode		*to_send_list;
-	struct list_head		*tmp;
 
 	if (list_count == 0)
 		wait_event_interruptible(wq, list_count > 0);
 	list_for_each_entry(to_send_list, &head.list, list)
 		break;
 	copy_to_user(to_send, to_send_list->dsp, sizeof(struct ku_dispenser_t));
-	list_del(&to_send_list.list);
+	list_del(&(to_send_list->list));
 	list_count--;
 	kfree(to_send_list->dsp);
 	kfree(to_send_list);
@@ -142,6 +153,9 @@ static void send_dispenser_data(unsigned long arg)
 
 static void timer_initiate_sonic(struct timer_list *t)
 {
+	struct list_head *pos;
+	struct list_head *q;
+	struct ku_listnode *tmp;
 	//real_time. So Over buffer -> delete.
 	if (list_count > 1000)
 	{
@@ -173,8 +187,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 	long long time;
 	int cm;
 
-	struct test_list *tmp = 0;
-	struct list_head *pos = 0;
+	struct ku_listnode *tmp = 0;
 	struct ku_dispenser_t *dsp = 0;
 
 	struct timeval now;
@@ -207,13 +220,13 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 			tmp = (struct ku_listnode *)kmalloc(sizeof(struct ku_listnode), GFP_ATOMIC);
 			if (!tmp)
 			{
-				printf("KERNEL ATOMIC KMALLOC ERROR\n");
+				printk("KERNEL ATOMIC KMALLOC ERROR\n");
 				return (IRQ_HANDLED);
 			}
 			dsp = (struct ku_dispenser_t *)kmalloc(sizeof(struct ku_dispenser_t), GFP_ATOMIC);
 			if (!dsp)
 			{
-				printf("KERNEL ATOMIC KMALLOC ERROR\n");
+				printk("KERNEL ATOMIC KMALLOC ERROR\n");
 				return (IRQ_HANDLED);
 			}
 			tmp->dsp = dsp;
@@ -222,7 +235,7 @@ static irqreturn_t ultra_isr(int irq, void *dev_id)
 			dsp->is_dispenser_open = dispenser_open;
 			dsp->timeval = tm_val;
 
-			list_add_tail(&tmp->list, &head->list);
+			list_add_tail(&tmp->list, &head.list);
 			list_count++;
 
 			//Timer 가동
@@ -263,11 +276,10 @@ static void play(int note)
 
 static long ku_dispenser_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-	int		ret_val;
 
 	switch (cmd)
 	{
-		case KU_DISPENSER_GET_DATA:
+		case KU_DISPENSER_GETDATA:
 			send_dispenser_data(arg);
 			return (0);
 		case KU_DISPENSER_CLOSE_OUTLET:
@@ -288,7 +300,7 @@ static long ku_dispenser_ioctl(struct file *file, unsigned int cmd, unsigned lon
 
 struct file_operations ku_dispenser_fops = {
 	.open = ku_dispenser_open,
-	.release= ku_dispenser_close,
+	.release= ku_dispenser_release,
 	.unlocked_ioctl = ku_dispenser_ioctl,
 };
 
@@ -298,7 +310,6 @@ static int __init ku_dispenser_init(void)
 
 	int ret;
 
-	unsigned int i;
 	INIT_LIST_HEAD(&head.list);
 	init_waitqueue_head(&wq);
 
@@ -334,7 +345,6 @@ static int __init ku_dispenser_init(void)
 
 static void __exit ku_dispenser_exit(void)
 {
-	int		i;
 	struct ku_listnode		*tmp;
 	struct list_head	*pos;
 	struct list_head	*q;
