@@ -105,6 +105,7 @@ void backward(int round, int delay)
 	int i=0;
 	int j=0;
 
+	printk("ku_dispenser : fowward\n");
 	dispenser_open = TRUE;
 	for (i = 0; i < ONEROUND/2 * round; i++)
 	{
@@ -122,6 +123,7 @@ void forward(int round, int delay)
 	int i=0;
 	int j=0;
 
+	printk("ku_dispenser : fowward\n");
 	dispenser_open = FALSE;
 	for (i = 0; i < ONEROUND/2 * round; i++)
 	{
@@ -275,7 +277,7 @@ static int ku_dispenser_release(struct inode *inode, struct file *file) {
 
 static long ku_dispenser_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-
+	printk("ku_dispenser : ioctl()\n")
 	switch (cmd)
 	{
 		case KU_DISPENSER_GETDATA:
