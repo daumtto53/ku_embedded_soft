@@ -159,7 +159,7 @@ static void timer_initiate_sonic(struct timer_list *t)
 	struct list_head *q;
 	struct ku_listnode *tmp;
 	//real_time. So Over buffer -> delete.
-	
+
 	printk("ku_dispenser : timer_initiate_sonic\n");
 	if (list_count > 1000)
 	{
@@ -351,6 +351,7 @@ static int __init ku_dispenser_init(void)
 	printk("ku_dispenser : timer init\n");
 	timer_setup(&timer, timer_initiate_sonic, 0);
 	timer.expires = jiffies + msecs_to_jiffies(60 * 10);
+	add_timer(&my_timer.timer);
 
 	return (0);
 }
