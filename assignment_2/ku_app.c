@@ -12,7 +12,8 @@ void	write_log(int log_fd, char *status, struct ku_dispenser_t *rcv_dispenser)
 	struct ku_dispenser_t *p = rcv_dispenser;
 
 	fprintf(log_fd, "{%lld} [%d %d %d %d:%d:%d] #STATUS : %s", p->ktime, \
-		p->year, p->month, p->day, p->hour, p->min, p->sec, status);
+		p->timeval.tm_year + 1900, p->timeval.tm_mon, p->timeval.tm_mday, p->timeval.tm_hour, p->timeval.tm_min, \
+		p->timeval.tm_sec, status);
 }
 
 int		is_data_time_off_limit(struct ku_dispenser_t dsp_data)
@@ -23,11 +24,12 @@ int		is_data_time_off_limit(struct ku_dispenser_t dsp_data)
 
 	t = time(NULL);
 	tmval = *localtime(&t);
-	diff = dsp_data.year - tmval.tm_year + dsp_data.month - tmval.tm_mon + dsp_data.day - tmval.tm_mday +\
-		dsp_data.hour - tmval.tm_hour;
+	diff = dsp_data.timeval.tm_year - tmval.tm_year + dsp_data.timeval.tm_mon - tmval.tm_mon + \
+		dsp_data.timeval.tm_mday - tmval.tm_mday + \
+		dsp_data.timeval.tm_hour - tmval.tm_hour;
 	if (!diff)
 		return (TRUE);
-	diff = tmval.tm_min - dsp_data.min;
+	diff = tmval.tm_min - dsp_data.timeval.tm_min;
 	if (diff >= 10)
 		return (TRUE);
 	else
