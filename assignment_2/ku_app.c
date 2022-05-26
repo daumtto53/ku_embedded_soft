@@ -53,11 +53,13 @@ int		is_data_time_off_limit(struct ku_dispenser_t dsp_data)
 int main()
 {
 	FILE	*log_f;
+	int beep_delay_min;
 	int	dispenser_fd;
 	int	ret;
 	int	call_count;
 	char	status[30];
 	struct ku_dispenser_t dispenser_data;
+	int		beep_count = 0;
 
 	log_f = fopen(LOG_FILE_NAME, "a");
 
@@ -83,6 +85,7 @@ int main()
 			}
 			else if (dispenser_data.distance > EMPTY_DISTANCE && !dispenser_data.is_dispenser_open && !call_count)
 			{
+				beep_delay_min = dispenser_data.timeval.tm_min;
 				printf("dispenser_Open: is_open[%d], time[%d:%d:%d] distance[%d]\n", dispenser_data.is_dispenser_open, dispenser_data.timeval.tm_hour, \
 					dispenser_data.timeval.tm_min, dispenser_data.timeval.tm_sec, dispenser_data.distance);
 				open_dispenser();
@@ -93,8 +96,14 @@ int main()
 			{
 				printf("dispenser_MakeSound: is_open[%d], time[%d:%d:%d] distance[%d]\n", dispenser_data.is_dispenser_open, dispenser_data.timeval.tm_hour, \
 					dispenser_data.timeval.tm_min, dispenser_data.timeval.tm_sec, dispenser_data.distance);
-				make_sound();
-				make_sound();
+
+				if (dispenser_data.timeval.tm_min - beep_delay_min > 30)
+					beep_count = 0;
+				if (beep_count <= 5)
+				{
+					make_sound();
+					beep_count++;
+				}
 				strcpy(status, "EMPTY");
 			}
 		}
