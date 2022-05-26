@@ -5,7 +5,6 @@ PWD:=$(shell pwd)
 
 default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) $(ARM) modules
-	gcc -o ku_app ku_app.c ku_lib.c
 	arm-linux-gnueabi-gcc -o ku_app ku_app.c ku_lib.c
 
 clean:
@@ -13,4 +12,4 @@ clean:
 	rm ku_app
 
 scp:
-	scp $(obj-m:.o=.ko) mknod.sh $(obj-m:.o=_app) pi@10.10.10.12:~/
+	scp $(obj-m:.o=.ko) mknod.sh ku_app pi@10.10.10.12:~/
