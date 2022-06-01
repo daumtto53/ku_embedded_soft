@@ -13,8 +13,8 @@ static int count = 0;
 
 static int proc_info_show(struct seq_file *seq, void *v)
 {
-	seq_print(seq, "%d\n", id);
-	seq_print(seq, "%s\n", name);
+	seq_print(seq, "%s\n\n", name);
+	seq_print(seq, "str : %d\n", count);
 
 	return (0);
 }
@@ -28,6 +28,7 @@ static ssize_t proc_info_write(struct file *file, const char __user *ubuf, size_
 {
 	char buf[BUFF_SIZE];
 	int i = 0;
+	char	t;
 
 	if (ubuf_len > BUF_SIZE)
 		return (-1);
@@ -39,10 +40,13 @@ static ssize_t proc_info_write(struct file *file, const char __user *ubuf, size_
 	count = 0;
 
 	printk("ch9 str : %s\n", name);
+	t = 0;
 	while (buf[i])
 	{
-		if (buf[i] == ' ')
+		if (buf[i] == ' ' && t != ' ')
 			count++;
+		t = buf[i];
+		i++;
 	}
 	printk("count : %d\n", count);
 
