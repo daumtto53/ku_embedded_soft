@@ -6,15 +6,15 @@
 
 MODULE_LICENSE("GPL");
 
-#define BUF_SIZE
-static struct proc_dir_entry *parent_proc
+#define BUF_SIZE 50
+static struct proc_dir_entry *parent_proc;
 static char name[100] = "";
 static int count = 0;
 
 static int proc_info_show(struct seq_file *seq, void *v)
 {
-	seq_print(seq, "%s\n\n", name);
-	seq_print(seq, "str : %d\n", count);
+	seq_printf(seq, "%s\n\n", name);
+	seq_printf(seq, "str : %d\n", count);
 
 	return (0);
 }
@@ -26,7 +26,7 @@ static int proc_info_open(struct inode *inode, struct file *file)
 
 static ssize_t proc_info_write(struct file *file, const char __user *ubuf, size_t ubuf_len, loff_t *pos)
 {
-	char buf[BUFF_SIZE];
+	char buf[BUF_SIZE];
 	int i = 0;
 	char	t;
 
@@ -36,16 +36,15 @@ static ssize_t proc_info_write(struct file *file, const char __user *ubuf, size_
 		return (-1);
 
 	memset(name , 0 , sizeof(name));
-	sscanf(buf, "%s\n", name);
+	sscanf(buf, "%s", name);
 	count = 0;
 
 	printk("ch9 str : %s\n", name);
 	t = 0;
 	while (buf[i])
 	{
-		if (buf[i] == ' ' && t != ' ')
+		if (buf[i] == ' ')
 			count++;
-		t = buf[i];
 		i++;
 	}
 	printk("count : %d\n", count);
@@ -64,8 +63,7 @@ static const struct file_operations proc_info_fops = {
 
 static int __init simple_proc_init(void)
 {
-	parent_proc = proc_mkdir("simple_proc_dir", NULL);
-	proc_create("proc_info", 0666, parent_proc, &proc_info_fops);
+	proc_create("ch9", 0666, NULL, &proc_info_fops);
 	return (0);
 }
 
