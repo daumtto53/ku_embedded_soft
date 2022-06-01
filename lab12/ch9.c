@@ -36,7 +36,8 @@ static ssize_t proc_info_write(struct file *file, const char __user *ubuf, size_
 		return (-1);
 
 	memset(name , 0 , sizeof(name));
-	sscanf(buf, "%s", name);
+	strcpy(name, buf);
+	name[strlen(buf)] = 0;
 	count = 0;
 
 	printk("ch9 str : %s\n", name);
