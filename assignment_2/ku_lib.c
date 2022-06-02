@@ -9,7 +9,6 @@ int get_dispenser_data(struct ku_dispenser_t *dsp)
 	if (dispenser_fd == -1)
 		printf("fd open failed\n");
 	ret = ioctl(dispenser_fd, KU_DISPENSER_GETDATA, dsp);
-	printf("dsp data : ktime:[%lld], distance:[%d]\n", dsp->ktime, dsp->distance);
 	close(dispenser_fd);
 	return (ret);
 }
