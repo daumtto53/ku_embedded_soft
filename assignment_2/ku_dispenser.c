@@ -96,6 +96,7 @@ int notes[] = {1911,1702 ,1516  ,1431  ,1275  , 1136 , 1012 };
 void setstep(int p1, int p2, int p3, int p4)
 {
 	gpio_set_value(PIN1, p1);
+	gpio_set_value(PIN2, p2);
 	gpio_set_value(PIN3, p3);
 	gpio_set_value(PIN4, p4);
 }
