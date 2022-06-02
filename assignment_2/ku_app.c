@@ -28,6 +28,7 @@ void	write_log(FILE *log_f, char *status, struct ku_dispenser_t *rcv_dispenser)
 	fprintf(log_f, "%s :: Date[%d %d %d] Time[%d:%d:%d] Distance[%d] \n\n", status, \
 		dispenser_data.timeval.tm_year + 1900, dispenser_data.timeval.tm_mon, dispenser_data.timeval.tm_mday,\
 	       	dispenser_data.timeval.tm_hour, dispenser_data.timeval.tm_min, dispenser_data.timeval.tm_sec, dispenser_data.distance);
+	fflush(log_f);
 }
 
 int		is_data_time_off_limit(struct ku_dispenser_t dsp_data)
@@ -60,7 +61,7 @@ int main()
 	struct ku_dispenser_t dispenser_data;
 	int		beep_count = 0;
 
-	log_f = fopen(LOG_FILE_NAME, "a");
+	log_f = fopen(LOG_FILE_NAME, "w");
 
 	call_count = 0;
 	while (1)
